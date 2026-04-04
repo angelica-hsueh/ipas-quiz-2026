@@ -1,773 +1,990 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iPAS AI應用規劃師初級 模擬試題</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
-    background: #0f0f13;
-    color: #e0e0e0;
-    min-height: 100vh;
-  }
-
-  /* ── Header ── */
-  header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border-bottom: 1px solid #2a2a4a;
-    padding: 1.5rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  header h1 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #fff;
-  }
-  header h1 span { color: #7c6af7; }
-
-  .badge {
-    font-size: 0.75rem;
-    background: #7c6af722;
-    border: 1px solid #7c6af755;
-    color: #7c6af7;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-  }
-
-  /* ── Subject Tabs ── */
-  .tabs {
-    display: flex;
-    gap: 0;
-    background: #16161e;
-    border-bottom: 1px solid #2a2a4a;
-    padding: 0 2rem;
-  }
-
-  .tab {
-    padding: 1rem 1.5rem;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    font-size: 0.9rem;
-    color: #888;
-    transition: all 0.2s;
-    user-select: none;
-  }
-
-  .tab:hover { color: #ccc; }
-  .tab.active { color: #7c6af7; border-bottom-color: #7c6af7; }
-
-  /* ── Main Layout ── */
-  main { max-width: 820px; margin: 0 auto; padding: 2rem; }
-
-  /* ── Progress Bar ── */
-  .progress-bar-wrap {
-    background: #1e1e2e;
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .progress-bar-outer {
-    flex: 1;
-    background: #2a2a3a;
-    height: 8px;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .progress-bar-inner {
-    height: 100%;
-    background: linear-gradient(90deg, #7c6af7, #a78bfa);
-    border-radius: 4px;
-    transition: width 0.4s ease;
-  }
-
-  .progress-text { font-size: 0.8rem; color: #888; white-space: nowrap; }
-
-  /* ── Question Card ── */
-  .question-card {
-    background: #1a1a28;
-    border: 1px solid #2a2a3e;
-    border-radius: 12px;
-    padding: 1.75rem;
-    margin-bottom: 1.25rem;
-    transition: border-color 0.3s;
-  }
-
-  .question-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .q-num {
-    background: #7c6af722;
-    border: 1px solid #7c6af744;
-    color: #7c6af7;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.2rem 0.6rem;
-    border-radius: 6px;
-    white-space: nowrap;
-    margin-top: 2px;
-  }
-
-  .q-text { font-size: 1rem; line-height: 1.6; color: #ddd; }
-
-  /* ── Options ── */
-  .options { display: flex; flex-direction: column; gap: 0.6rem; }
-
-  .option {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.8rem 1rem;
-    border: 1px solid #2e2e44;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s;
-    user-select: none;
-  }
-
-  .option:hover:not(.locked) { border-color: #7c6af7; background: #7c6af711; }
-
-  .option-key {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    border-radius: 6px;
-    background: #2a2a3e;
-    border: 1px solid #3e3e5e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #888;
-    transition: all 0.15s;
-  }
-
-  .option-text { font-size: 0.92rem; line-height: 1.5; color: #ccc; }
-
-  /* States */
-  .option.selected { border-color: #7c6af7; background: #7c6af711; }
-  .option.selected .option-key { background: #7c6af7; border-color: #7c6af7; color: #fff; }
-
-  .option.correct { border-color: #22c55e; background: #22c55e11; }
-  .option.correct .option-key { background: #22c55e; border-color: #22c55e; color: #fff; }
-
-  .option.wrong { border-color: #ef4444; background: #ef444411; }
-  .option.wrong .option-key { background: #ef4444; border-color: #ef4444; color: #fff; }
-
-  .option.locked { cursor: default; }
-
-  /* ── Explanation ── */
-  .explanation {
-    display: none;
-    margin-top: 0.75rem;
-    padding: 0.85rem 1rem;
-    background: #12121c;
-    border-left: 3px solid #7c6af7;
-    border-radius: 0 6px 6px 0;
-    font-size: 0.88rem;
-    color: #aaa;
-    line-height: 1.6;
-  }
-
-  .explanation.visible { display: block; }
-  .explanation strong { color: #7c6af7; }
-
-  /* ── Controls ── */
-  .controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-
-  .btn {
-    padding: 0.7rem 1.4rem;
-    border-radius: 8px;
-    border: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, #7c6af7, #a78bfa);
-    color: #fff;
-  }
-
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px #7c6af744; }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-
-  .btn-ghost {
-    background: #1e1e2e;
-    color: #888;
-    border: 1px solid #2e2e44;
-  }
-
-  .btn-ghost:hover { border-color: #7c6af7; color: #ccc; }
-
-  /* ── Result Screen ── */
-  .result-screen {
-    display: none;
-    text-align: center;
-    padding: 2.5rem 1rem;
-  }
-
-  .result-screen.visible { display: block; }
-
-  .score-circle {
-    width: 160px;
-    height: 160px;
-    margin: 0 auto 1.5rem;
-    position: relative;
-  }
-
-  .score-circle svg { transform: rotate(-90deg); }
-
-  .score-circle-text {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-  }
-
-  .score-circle-text .score-num {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1;
-  }
-
-  .score-circle-text .score-label {
-    font-size: 0.75rem;
-    color: #888;
-    margin-top: 4px;
-  }
-
-  .result-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-
-  .result-pass { color: #22c55e; }
-  .result-fail { color: #ef4444; }
-
-  .result-detail {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin: 1.5rem 0;
-    flex-wrap: wrap;
-  }
-
-  .stat-box {
-    background: #1e1e2e;
-    border: 1px solid #2e2e44;
-    border-radius: 10px;
-    padding: 0.75rem 1.25rem;
-    min-width: 100px;
-  }
-
-  .stat-box .stat-val {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .stat-box .stat-key { font-size: 0.8rem; color: #666; }
-
-  .review-list {
-    text-align: left;
-    margin-top: 2rem;
-    background: #1a1a28;
-    border: 1px solid #2a2a3e;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .review-list h3 {
-    padding: 1rem 1.25rem;
-    font-size: 0.9rem;
-    color: #888;
-    border-bottom: 1px solid #2a2a3e;
-    background: #16161e;
-  }
-
-  .review-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
-    border-bottom: 1px solid #1e1e2e;
-    font-size: 0.85rem;
-  }
-
-  .review-item:last-child { border-bottom: none; }
-
-  .review-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .review-dot.ok { background: #22c55e; }
-  .review-dot.err { background: #ef4444; }
-
-  .review-item .q-snippet { flex: 1; color: #bbb; }
-  .review-item .your-ans { color: #ef4444; font-size: 0.8rem; }
-  .review-item .right-ans { color: #22c55e; font-size: 0.8rem; }
-  .review-item.ok-item .q-snippet { color: #888; }
-
-  /* ── Timer ── */
-  .timer {
-    font-size: 0.85rem;
-    color: #888;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .timer.warn { color: #ef4444; }
-
-  /* ── NotebookLM Import Panel ── */
-  .import-bar {
-    background: #13131f;
-    border-bottom: 1px solid #2a2a4a;
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-height: 44px;
-  }
-
-  .import-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 1rem;
-    border-radius: 6px;
-    border: 1px solid #3a3a5a;
-    background: none;
-    color: #a0a0c0;
-    font-size: 0.82rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .import-toggle:hover { border-color: #7c6af7; color: #c0b0ff; }
-  .import-toggle.active { border-color: #7c6af7; color: #7c6af7; background: #7c6af711; }
-
-  .pool-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; flex: 1; }
-  .pool-chip {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    background: #1e1e30;
-    border: 1px solid #2e2e4a;
-    color: #888;
-  }
-  .pool-chip.imported { border-color: #7c6af755; color: #a090e0; background: #7c6af711; }
-
-  .import-panel {
-    display: none;
-    background: #111120;
-    border-bottom: 1px solid #2a2a4a;
-    padding: 1.5rem 2rem;
-    gap: 1.25rem;
-    flex-direction: column;
-  }
-  .import-panel.open { display: flex; }
-
-  .import-panel h3 {
-    font-size: 0.9rem;
-    color: #c0b0ff;
-    margin-bottom: 0.25rem;
-  }
-
-  .prompt-block {
-    background: #0d0d1a;
-    border: 1px solid #2a2a4a;
-    border-radius: 8px;
-    padding: 0.85rem 1rem;
-    font-size: 0.78rem;
-    line-height: 1.7;
-    color: #9090b0;
-    white-space: pre-wrap;
-    word-break: break-all;
-    position: relative;
-    max-height: 180px;
-    overflow-y: auto;
-  }
-
-  .copy-btn {
-    position: absolute;
-    top: 0.5rem; right: 0.5rem;
-    padding: 0.25rem 0.6rem;
-    border-radius: 5px;
-    border: 1px solid #3a3a5a;
-    background: #1e1e30;
-    color: #888;
-    font-size: 0.72rem;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .copy-btn:hover { border-color: #7c6af7; color: #c0b0ff; }
-  .copy-btn.ok { border-color: #22c55e; color: #22c55e; }
-
-  .import-row { display: flex; gap: 0.75rem; align-items: flex-start; }
-
-  .import-textarea {
-    flex: 1;
-    min-height: 100px;
-    background: #0d0d1a;
-    border: 1px solid #2a2a4a;
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-    color: #c0c0e0;
-    font-size: 0.82rem;
-    font-family: 'Consolas', monospace;
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .import-textarea:focus { border-color: #7c6af7; }
-  .import-textarea::placeholder { color: #3a3a5a; }
-
-  .import-actions { display: flex; flex-direction: column; gap: 0.5rem; }
-
-  .btn-import {
-    padding: 0.6rem 1.1rem;
-    border-radius: 8px;
-    border: none;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    background: linear-gradient(135deg, #7c6af7, #a78bfa);
-    color: #fff;
-    white-space: nowrap;
-    transition: all 0.2s;
-  }
-  .btn-import:hover { transform: translateY(-1px); box-shadow: 0 4px 12px #7c6af744; }
-
-  .btn-clear-import {
-    padding: 0.6rem 1.1rem;
-    border-radius: 8px;
-    border: 1px solid #3a3a5a;
-    font-size: 0.85rem;
-    cursor: pointer;
-    background: none;
-    color: #888;
-    white-space: nowrap;
-    transition: all 0.15s;
-  }
-  .btn-clear-import:hover { border-color: #ef4444; color: #ef4444; }
-
-  .import-msg {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    display: none;
-  }
-  .import-msg.ok  { display: block; background: #22c55e18; border: 1px solid #22c55e44; color: #22c55e; }
-  .import-msg.err { display: block; background: #ef444418; border: 1px solid #ef444444; color: #ef4444; }
-
-  /* ── Responsive ── */
-  @media (max-width: 600px) {
-    main { padding: 1rem; }
-    header { padding: 1rem; }
-    .tabs { padding: 0 1rem; }
-    .tab { padding: 0.75rem 0.75rem; font-size: 0.82rem; }
-    .import-bar { padding: 0 1rem; }
-    .import-panel { padding: 1rem; }
-    .import-row { flex-direction: column; }
-    .import-actions { flex-direction: row; }
-  }
-
-  .db-status {
-    font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    white-space: nowrap;
-    margin-left: auto;
-    padding-right: 0.25rem;
-  }
-</style>
-<!-- Firebase SDK (共享題庫) -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iPAS AI應用規劃師初級 模擬試題</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      background: #0f0f13;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-bottom: 1px solid #2a2a4a;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    header h1 span {
+      color: #7c6af7;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      background: #7c6af722;
+      border: 1px solid #7c6af755;
+      color: #7c6af7;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+    }
+
+    /* ── Subject Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      background: #16161e;
+      border-bottom: 1px solid #2a2a4a;
+      padding: 0 2rem;
+    }
+
+    .tab {
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-size: 0.9rem;
+      color: #888;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .tab:hover {
+      color: #ccc;
+    }
+
+    .tab.active {
+      color: #7c6af7;
+      border-bottom-color: #7c6af7;
+    }
+
+    /* ── Main Layout ── */
+    main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* ── Progress Bar ── */
+    .progress-bar-wrap {
+      background: #1e1e2e;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .progress-bar-outer {
+      flex: 1;
+      background: #2a2a3a;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #7c6af7, #a78bfa);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-text {
+      font-size: 0.8rem;
+      color: #888;
+      white-space: nowrap;
+    }
+
+    /* ── Question Card ── */
+    .question-card {
+      background: #1a1a28;
+      border: 1px solid #2a2a3e;
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      transition: border-color 0.3s;
+    }
+
+    .question-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .q-num {
+      background: #7c6af722;
+      border: 1px solid #7c6af744;
+      color: #7c6af7;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .q-text {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #ddd;
+    }
+
+    /* ── Options ── */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.8rem 1rem;
+      border: 1px solid #2e2e44;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .option:hover:not(.locked) {
+      border-color: #7c6af7;
+      background: #7c6af711;
+    }
+
+    .option-key {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 6px;
+      background: #2a2a3e;
+      border: 1px solid #3e3e5e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #888;
+      transition: all 0.15s;
+    }
+
+    .option-text {
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #ccc;
+    }
+
+    /* States */
+    .option.selected {
+      border-color: #7c6af7;
+      background: #7c6af711;
+    }
+
+    .option.selected .option-key {
+      background: #7c6af7;
+      border-color: #7c6af7;
+      color: #fff;
+    }
+
+    .option.correct {
+      border-color: #22c55e;
+      background: #22c55e11;
+    }
+
+    .option.correct .option-key {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #fff;
+    }
+
+    .option.wrong {
+      border-color: #ef4444;
+      background: #ef444411;
+    }
+
+    .option.wrong .option-key {
+      background: #ef4444;
+      border-color: #ef4444;
+      color: #fff;
+    }
+
+    .option.locked {
+      cursor: default;
+    }
+
+    /* ── Explanation ── */
+    .explanation {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.85rem 1rem;
+      background: #12121c;
+      border-left: 3px solid #7c6af7;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.88rem;
+      color: #aaa;
+      line-height: 1.6;
+    }
+
+    .explanation.visible {
+      display: block;
+    }
+
+    .explanation strong {
+      color: #7c6af7;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      padding: 0.7rem 1.4rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c6af7, #a78bfa);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px #7c6af744;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-ghost {
+      background: #1e1e2e;
+      color: #888;
+      border: 1px solid #2e2e44;
+    }
+
+    .btn-ghost:hover {
+      border-color: #7c6af7;
+      color: #ccc;
+    }
+
+    /* ── Result Screen ── */
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+
+    .result-screen.visible {
+      display: block;
+    }
+
+    .score-circle {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 1.5rem;
+      position: relative;
+    }
+
+    .score-circle svg {
+      transform: rotate(-90deg);
+    }
+
+    .score-circle-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .score-circle-text .score-num {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .score-circle-text .score-label {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .result-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-pass {
+      color: #22c55e;
+    }
+
+    .result-fail {
+      color: #ef4444;
+    }
+
+    .result-detail {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      background: #1e1e2e;
+      border: 1px solid #2e2e44;
+      border-radius: 10px;
+      padding: 0.75rem 1.25rem;
+      min-width: 100px;
+    }
+
+    .stat-box .stat-val {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .stat-box .stat-key {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .review-list {
+      text-align: left;
+      margin-top: 2rem;
+      background: #1a1a28;
+      border: 1px solid #2a2a3e;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .review-list h3 {
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      color: #888;
+      border-bottom: 1px solid #2a2a3e;
+      background: #16161e;
+    }
+
+    .review-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid #1e1e2e;
+      font-size: 0.85rem;
+    }
+
+    .review-item:last-child {
+      border-bottom: none;
+    }
+
+    .review-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .review-dot.ok {
+      background: #22c55e;
+    }
+
+    .review-dot.err {
+      background: #ef4444;
+    }
+
+    .review-item .q-snippet {
+      flex: 1;
+      color: #bbb;
+    }
+
+    .review-item .your-ans {
+      color: #ef4444;
+      font-size: 0.8rem;
+    }
+
+    .review-item .right-ans {
+      color: #22c55e;
+      font-size: 0.8rem;
+    }
+
+    .review-item.ok-item .q-snippet {
+      color: #888;
+    }
+
+    /* ── Timer ── */
+    .timer {
+      font-size: 0.85rem;
+      color: #888;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer.warn {
+      color: #ef4444;
+    }
+
+    /* ── NotebookLM Import Panel ── */
+    .import-bar {
+      background: #13131f;
+      border-bottom: 1px solid #2a2a4a;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 44px;
+    }
+
+    .import-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #3a3a5a;
+      background: none;
+      color: #a0a0c0;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .import-toggle:hover {
+      border-color: #7c6af7;
+      color: #c0b0ff;
+    }
+
+    .import-toggle.active {
+      border-color: #7c6af7;
+      color: #7c6af7;
+      background: #7c6af711;
+    }
+
+    .pool-chips {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .pool-chip {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      background: #1e1e30;
+      border: 1px solid #2e2e4a;
+      color: #888;
+    }
+
+    .pool-chip.imported {
+      border-color: #7c6af755;
+      color: #a090e0;
+      background: #7c6af711;
+    }
+
+    .import-panel {
+      display: none;
+      background: #111120;
+      border-bottom: 1px solid #2a2a4a;
+      padding: 1.5rem 2rem;
+      gap: 1.25rem;
+      flex-direction: column;
+    }
+
+    .import-panel.open {
+      display: flex;
+    }
+
+    .import-panel h3 {
+      font-size: 0.9rem;
+      color: #c0b0ff;
+      margin-bottom: 0.25rem;
+    }
+
+    .prompt-block {
+      background: #0d0d1a;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: #9090b0;
+      white-space: pre-wrap;
+      word-break: break-all;
+      position: relative;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 5px;
+      border: 1px solid #3a3a5a;
+      background: #1e1e30;
+      color: #888;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover {
+      border-color: #7c6af7;
+      color: #c0b0ff;
+    }
+
+    .copy-btn.ok {
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+
+    .import-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .import-textarea {
+      flex: 1;
+      min-height: 100px;
+      background: #0d0d1a;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #c0c0e0;
+      font-size: 0.82rem;
+      font-family: 'Consolas', monospace;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .import-textarea:focus {
+      border-color: #7c6af7;
+    }
+
+    .import-textarea::placeholder {
+      color: #3a3a5a;
+    }
+
+    .import-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .btn-import {
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #7c6af7, #a78bfa);
+      color: #fff;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .btn-import:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px #7c6af744;
+    }
+
+    .btn-clear-import {
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
+      border: 1px solid #3a3a5a;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: none;
+      color: #888;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .btn-clear-import:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .import-msg {
+      font-size: 0.8rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .import-msg.ok {
+      display: block;
+      background: #22c55e18;
+      border: 1px solid #22c55e44;
+      color: #22c55e;
+    }
+
+    .import-msg.err {
+      display: block;
+      background: #ef444418;
+      border: 1px solid #ef444444;
+      color: #ef4444;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      main {
+        padding: 1rem;
+      }
+
+      header {
+        padding: 1rem;
+      }
+
+      .tabs {
+        padding: 0 1rem;
+      }
+
+      .tab {
+        padding: 0.75rem 0.75rem;
+        font-size: 0.82rem;
+      }
+
+      .import-bar {
+        padding: 0 1rem;
+      }
+
+      .import-panel {
+        padding: 1rem;
+      }
+
+      .import-row {
+        flex-direction: column;
+      }
+
+      .import-actions {
+        flex-direction: row;
+      }
+    }
+
+    .db-status {
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      white-space: nowrap;
+      margin-left: auto;
+      padding-right: 0.25rem;
+    }
+  </style>
+  <!-- Firebase SDK (共享題庫) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
+
 <body>
 
-<header>
-  <div>
-    <h1>iPAS <span>AI應用規劃師</span> 初級</h1>
-    <div style="font-size:0.8rem;color:#666;margin-top:4px">模擬試題練習系統</div>
-  </div>
-  <span class="badge">每次隨機抽 29 題 · 及格 70 分</span>
-</header>
-
-<!-- Subject Tabs -->
-<div class="tabs" id="tabBar">
-  <div class="tab active" data-subject="0">科目一：AI 基礎概論</div>
-  <div class="tab" data-subject="1">科目二：生成式 AI 應用</div>
-</div>
-
-<!-- NotebookLM Import Bar -->
-<div class="import-bar">
-  <button class="import-toggle" id="importToggle" onclick="toggleImport()">
-    ＋ NotebookLM 匯入題目
-  </button>
-  <div class="pool-chips" id="poolChips"></div>
-  <div class="db-status" id="dbStatus">⚪ <span style="color:#555">未連線</span></div>
-</div>
-
-<!-- Import Panel -->
-<div class="import-panel" id="importPanel">
-
-  <div>
-    <h3>① 複製以下 Prompt 貼入 NotebookLM</h3>
-    <div class="prompt-block" id="promptBlock">請根據我上傳的學習資料，幫我生成 10 道繁體中文四選一的單選題，格式必須嚴格輸出為以下 JSON 陣列（不要加任何說明文字、不要用 Markdown code block 包住，直接輸出純 JSON）：
-
-[
-  {
-    "q": "題目敘述",
-    "opts": ["選項A", "選項B", "選項C", "選項D"],
-    "ans": 0,
-    "exp": "詳細解析說明，說明為何答案正確、其他選項錯誤的原因"
-  }
-]
-
-規則：
-- ans 為正確答案的索引（0=A, 1=B, 2=C, 3=D）
-- opts 陣列必須剛好 4 個元素
-- 題目要涵蓋 AI 基礎概念、機器學習、資料處理、AI 倫理等主題
-- 難度對標 iPAS AI應用規劃師初級考試
-- exp 解析要詳細，說明正確答案的理由<button class="copy-btn" id="copyPromptBtn" onclick="copyPrompt()">複製</button></div>
-  </div>
-
-  <div>
-    <h3>② 將 NotebookLM 回覆的 JSON 貼入下方</h3>
-    <div class="import-row">
-      <textarea class="import-textarea" id="importJson"
-        placeholder='[{"q":"題目...","opts":["A","B","C","D"],"ans":0,"exp":"解析..."}]'></textarea>
-      <div class="import-actions">
-        <button class="btn-import" onclick="importQuestions()">匯入題目</button>
-        <button class="btn-clear-import" onclick="clearImported()">清除匯入</button>
-      </div>
+  <header>
+    <div>
+      <h1>iPAS <span>AI應用規劃師</span> 初級</h1>
+      <div style="font-size:0.8rem;color:#666;margin-top:4px">模擬試題練習系統</div>
     </div>
-    <div class="import-msg" id="importMsg"></div>
+    <span class="badge">每次隨機抽 29 題 · 及格 70 分</span>
+  </header>
+
+  <!-- Subject Tabs -->
+  <div class="tabs" id="tabBar">
+    <div class="tab active" data-subject="0">科目一：AI 基礎概論</div>
+    <div class="tab" data-subject="1">科目二：生成式 AI 應用</div>
   </div>
 
-</div>
+  <!-- NotebookLM Import Bar -->
+  <div class="import-bar">
+    <button class="import-toggle" id="importToggle" onclick="toggleImport()">
+      ＋ NotebookLM 匯入題目
+    </button>
+    <div class="pool-chips" id="poolChips"></div>
+    <div class="db-status" id="dbStatus">⚪ <span style="color:#555">未連線</span></div>
+  </div>
 
-<main id="mainArea"></main>
+  <!-- Import Panel -->
+  <div class="import-panel" id="importPanel">
 
-<script>
-// ════════════════════════════════════════════════
-//  QUESTION DATA  (pool → 每次隨機抽 29 題)
-// ════════════════════════════════════════════════
-const DRAW = 29; // 每次抽題數
+    <div>
+      <h3>① 複製以下 Prompt 貼入 NotebookLM</h3>
+      <div class="prompt-block" id="promptBlock">請根據我上傳的學習資料，幫我生成 10 道繁體中文四選一的單選題，格式必須嚴格輸出為以下 JSON 陣列（不要加任何說明文字、不要用
+        Markdown code block 包住，直接輸出純 JSON）：
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+        [
+        {
+        "q": "題目敘述",
+        "opts": ["選項A", "選項B", "選項C", "選項D"],
+        "ans": 0,
+        "exp": "詳細解析說明，說明為何答案正確、其他選項錯誤的原因"
+        }
+        ]
 
-const subjects = [
-  {
-    name: "科目一：人工智慧基礎概論",
-    pool: [
-      { q: "下列何者最能描述「弱 AI（Narrow AI）」的特性？", opts: ["能夠在所有領域超越人類智慧","專注於特定任務，在該任務上表現出色","具有自我意識和情感","能夠自主設定學習目標"], ans: 1, exp: "弱 AI 又稱窄域 AI，只擅長特定任務（如圍棋、人臉辨識），無法跨域。強 AI（AGI）才是通用智慧的概念。" },
-      { q: "AI 三大核心要素不包括下列哪一項？", opts: ["資料（Data）","演算法（Algorithm）","網路頻寬（Bandwidth）","運算力（Computing Power）"], ans: 2, exp: "AI 三大要素是：資料、演算法、運算力（GPU/TPU）。網路頻寬非核心要素。" },
-      { q: "下列何者屬於「監督式學習」的應用？", opts: ["客戶分群（Customer Segmentation）","垃圾郵件分類","市場籃子分析","資料降維"], ans: 1, exp: "垃圾郵件分類需要有標籤的訓練資料（垃圾/正常），屬監督式學習。客戶分群、關聯規則（市場籃）、降維均屬非監督式學習。" },
-      { q: "機器學習模型出現「過擬合（Overfitting）」時，以下哪種現象最常出現？", opts: ["訓練準確率高，測試準確率低","訓練準確率低，測試準確率高","訓練和測試準確率都低","訓練和測試準確率都高"], ans: 0, exp: "過擬合代表模型記住了訓練資料的雜訊，泛化能力差，所以訓練集準確率高但測試集準確率低。" },
-      { q: "下列哪種資料類型屬於「非結構化資料」？", opts: ["Excel 試算表","SQL 資料庫記錄","社群媒體貼文","CSV 檔案"], ans: 2, exp: "非結構化資料沒有固定格式，如文字貼文、圖片、影片。Excel/SQL/CSV 都有固定欄位，屬結構化資料。" },
-      { q: "「強化學習（Reinforcement Learning）」主要透過什麼機制讓 AI 學習？", opts: ["大量有標籤的訓練資料","發現資料的隱藏模式","與環境互動獲得獎勵或懲罰","模仿人類示範行為"], ans: 2, exp: "強化學習的核心是 Agent 透過與環境互動，根據行動結果獲得正/負獎勵，不斷優化策略以最大化長期獎勵。" },
-      { q: "下列何者是 AI 在醫療領域的典型應用？", opts: ["演算法交易","供應鏈優化","醫療影像診斷","路況預測"], ans: 2, exp: "醫療影像診斷（如 X 光、病理切片 AI 辨識）是醫療 AI 最核心應用。演算法交易屬金融，供應鏈優化屬製造，路況預測屬交通。" },
-      { q: "「No Code AI 工具」的主要優勢是什麼？", opts: ["需要深入的程式設計能力","允許非技術人員使用 AI 功能","僅適合大型企業使用","模型準確率最高"], ans: 1, exp: "No Code 工具的核心價值就是降低門檻，讓沒有程式背景的業務人員也能使用 AI 功能，如 Teachable Machine、Power Automate。" },
-      { q: "訓練 AI 模型時，「驗證集（Validation Set）」的主要用途是？", opts: ["提供最終評估模型表現的資料","讓模型學習資料規律","調整超參數（Hyperparameter）","收集訓練資料"], ans: 2, exp: "驗證集在訓練過程中用於調整超參數（如學習率、層數），選出最好的模型設定。測試集才是最終評估，且只能用一次。" },
-      { q: "下列關於深度學習（Deep Learning）的描述，何者正確？", opts: ["深度學習是機器學習的上位概念","深度學習不需要大量資料","深度學習使用多層神經網路","深度學習無法處理圖像資料"], ans: 2, exp: "深度學習是機器學習的子集，特點是使用多層（深層）神經網路。它需要大量資料，且特別擅長圖像、語音處理。" },
-      { q: "下列哪種方法最適合處理數值型欄位的「缺失值（Missing Values）」？", opts: ["直接刪除整個資料集","使用均值或中位數填補","將缺失值替換為 0","忽略不處理"], ans: 1, exp: "數值型缺失值最常用均值（Mean）或中位數（Median）填補。中位數不受極端值影響，更為穩健。直接替換為 0 可能扭曲資料分佈。" },
-      { q: "「描述性分析（Descriptive Analytics）」主要回答哪類問題？", opts: ["為什麼會發生？","發生了什麼事？","將來會發生什麼？","應該採取什麼行動？"], ans: 1, exp: "四種分析：描述性（發生了什麼）→ 診斷性（為什麼）→ 預測性（將來如何）→ 規範性（應該怎麼做）。" },
-      { q: "中位數（Median）相較於平均數（Mean）的主要優點是？", opts: ["計算速度較快","不受極端值（Outlier）影響","永遠等於眾數","適用於類別資料"], ans: 1, exp: "當資料有極端值（如少數超高薪員工），平均數會被拉高失真，中位數不受影響，更能代表「典型值」。" },
-      { q: "資料視覺化中，「折線圖（Line Chart）」最適合用於？", opts: ["比較不同類別的數量","顯示資料的時間序列趨勢","呈現各類別的比例","顯示兩變數的相關性"], ans: 1, exp: "折線圖最適合呈現時間序列趨勢（如月銷售額走勢）。長條圖比較類別，圓餅圖看比例，散佈圖看相關性。" },
-      { q: "「資料清洗（Data Cleaning）」的主要目的是？", opts: ["增加資料的數量","提高資料品質，去除錯誤和不一致","加密個人資料","壓縮資料儲存空間"], ans: 1, exp: "資料清洗是為了提高資料品質，處理缺失值、異常值、重複資料、格式不一致等問題，確保模型訓練品質。" },
-      { q: "以下哪種技術屬於「非監督式學習」？", opts: ["線性迴歸","K-means 分群","決策樹分類","支援向量機（SVM）"], ans: 1, exp: "K-means 是將資料分成 K 個群組，不需要標籤，屬非監督式學習。線性迴歸、決策樹、SVM 都需要標籤，屬監督式學習。" },
-      { q: "AI 模型評估中，「精確率（Precision）」的定義是？", opts: ["所有正確預測佔總預測的比例","預測為正類中，實際為正類的比例","實際為正類中，被預測為正類的比例","Precision 和 Recall 的調和平均"], ans: 1, exp: "Precision = TP/(TP+FP)，關注「預測說是正的，有多少真的是正的」。Recall = TP/(TP+FN)，關注「真正是正的，有多少被找到」。" },
-      { q: "「AI 偏見（Bias）」的主要來源不包括下列哪一項？", opts: ["訓練資料中存在的歷史偏見","標注者的主觀偏見","模型架構過於複雜","演算法優化目標導致的不公平"], ans: 2, exp: "AI 偏見主要來自：訓練資料偏見、標注者主觀偏見、演算法設計問題。模型「過於複雜」會導致過擬合，但不是 Bias 的直接來源。" },
-      { q: "「聯邦學習（Federated Learning）」的核心優勢是？", opts: ["提高模型訓練速度","資料不需離開裝置，保護隱私","降低模型複雜度","不需要任何計算資源"], ans: 1, exp: "聯邦學習的核心：各裝置本地訓練，只上傳模型參數更新，原始資料不離開裝置，大幅保護隱私。Google Gboard 就採用此技術。" },
-      { q: "根據 EU AI Act，下列哪種 AI 應用屬於「高風險」？", opts: ["AI 遊戲","垃圾郵件過濾","醫療診斷系統","電影推薦系統"], ans: 2, exp: "EU AI Act 高風險 AI 包含：醫療診斷、自動駕駛、信用評分、司法決策、關鍵基礎設施等。遊戲和推薦系統屬低風險。" },
-      { q: "「可解釋 AI（Explainable AI, XAI）」主要解決哪個問題？", opts: ["提高模型準確率","使 AI 決策過程透明可理解","降低訓練成本","增加資料收集效率"], ans: 1, exp: "XAI 的目標是讓人類能理解 AI 為什麼做出某個決策，解決深度學習「黑盒子」問題，提升信任與問責性。" },
-      { q: "「對抗性攻擊（Adversarial Attack）」是指？", opts: ["駭客入侵 AI 伺服器","在輸入資料加入微小擾動以欺騙 AI 模型","AI 系統間的競爭","使用強化學習攻擊敵方 AI"], ans: 1, exp: "對抗性攻擊是在圖像等輸入資料中加入人眼幾乎看不見的微小擾動，導致模型判斷錯誤。例如：貼紙讓停止標誌被辨識成限速標誌。" },
-      { q: "AI 倫理中「問責性（Accountability）」的含義是？", opts: ["AI 系統必須由人類操作","明確 AI 系統的責任歸屬","AI 決策需要公開透明","確保 AI 對所有用戶公平"], ans: 1, exp: "問責性是指當 AI 系統出錯或造成損害時，必須有明確的責任主體（開發者、部署者或使用者），以便追責和改善。" },
-      { q: "在資料隱私保護中，「資料匿名化」的目的是？", opts: ["加快資料處理速度","移除可識別個人的資訊","提高資料準確性","減少資料儲存空間"], ans: 1, exp: "資料匿名化是移除或遮蔽姓名、身份證字號、電話等個人識別資訊，使資料無法追溯到特定個人，符合個資法要求。" },
-      { q: "「差分隱私（Differential Privacy）」的主要機制是？", opts: ["刪除所有個人識別資訊","對資料加密","加入統計雜訊保護個別資料","將資料儲存在安全伺服器"], ans: 2, exp: "差分隱私在查詢結果或模型更新中加入精心設計的隨機雜訊，使攻擊者無法從結果推斷任何單一個人的資料。" },
-      { q: "當 AI 系統在不同種族群體間的準確率存在顯著差異，這屬於哪種倫理問題？", opts: ["過擬合問題","公平性（Fairness）問題","透明性問題","隱私問題"], ans: 1, exp: "AI 系統對不同族群表現差異顯著，代表存在公平性（Fairness）問題，通常根源於訓練資料的偏見。" },
-      { q: "「模型中毒（Model Poisoning）」是指？", opts: ["模型過度訓練導致效能下降","在訓練資料中植入惡意樣本影響模型行為","模型的訓練時間過長","模型記憶體使用量過高"], ans: 1, exp: "模型中毒是一種供應鏈攻擊，攻擊者在訓練資料中植入惡意標注樣本（後門），導致模型在特定觸發條件下行為異常。" },
-      { q: "下列哪種技術可以標記 AI 生成內容，以便區分人工創作？", opts: ["加密技術","浮水印技術","壓縮技術","快取技術"], ans: 1, exp: "AI 內容浮水印（Watermarking）在生成內容中嵌入不可見的標記，可用於事後辨識是否為 AI 生成，有助於打擊深偽和不實資訊。" },
-      { q: "AI 治理框架中，「人類監督（Human Oversight）」原則的重要性在於？", opts: ["讓人類可以隨時接管並糾正 AI 的錯誤決策","減少 AI 的使用頻率","增加 AI 系統的成本","讓 AI 系統更自主運作"], ans: 0, exp: "人類監督確保 AI 不會完全自主運作，當 AI 做出錯誤或有害決策時，人類能夠介入、糾正，是 AI 安全的重要保障。" },
-      // ── 補充題庫 ──
-      { q: "卷積神經網路（CNN）最適合處理哪種類型的資料？", opts: ["時間序列數據","圖像與視覺資料","純文字語料","結構化表格資料"], ans: 1, exp: "CNN 利用卷積核（Filter）自動擷取圖像的局部特徵（邊緣、紋理、形狀），是電腦視覺任務（圖像分類、物件偵測）的主流架構。" },
-      { q: "「遞迴神經網路（RNN）」相較於傳統神經網路的主要優勢是？", opts: ["運算速度更快","能處理序列資料並記憶前文信息","不需要訓練資料","佔用記憶體更少"], ans: 1, exp: "RNN 有隱藏狀態（Hidden State），能將前一時間步的信息傳遞到下一步，特別適合時間序列、語音、文字等有順序關係的資料。" },
-      { q: "下列哪個演算法最常用於分類問題中的「決策邊界」學習？", opts: ["K-means","PCA","支援向量機（SVM）","自編碼器（Autoencoder）"], ans: 2, exp: "SVM 的核心目標是找到能最大化兩類別間距（Margin）的決策邊界（超平面），是典型的監督式分類演算法。" },
-      { q: "「隨機森林（Random Forest）」的主要特點是？", opts: ["只使用一棵決策樹","由多棵決策樹組合，透過投票提高準確率","不需要訓練資料","只能用於迴歸問題"], ans: 1, exp: "隨機森林是整體學習（Ensemble Learning）方法，訓練多棵決策樹，最終以多數投票（分類）或平均（迴歸）決定結果，能有效降低過擬合。" },
-      { q: "「自然語言處理（NLP）」中，「斷詞（Tokenization）」的目的是？", opts: ["翻譯文字","將文字切分成最小處理單位（Token）","過濾敏感內容","壓縮文字長度"], ans: 1, exp: "斷詞是 NLP 的第一步，將原始文字切分成詞彙、子詞或字元等 Token，讓模型能以數字向量形式處理語言。" },
-      { q: "機器學習中「特徵工程（Feature Engineering）」的主要目的是？", opts: ["增加訓練資料量","從原始資料中萃取或建立對模型有用的輸入特徵","減少模型層數","自動選擇最佳演算法"], ans: 1, exp: "特徵工程是將原始資料轉換成更有意義的特徵，如從日期提取「星期幾」、「是否假日」，能大幅提升模型預測能力。深度學習能自動學習特徵，減少人工特徵工程的需求。" },
-      { q: "「遷移學習（Transfer Learning）」的核心概念是？", opts: ["將資料從一個系統移轉到另一個","把在大量資料上預訓練的模型知識應用到新任務","在多個系統同時訓練模型","用更少層數建立模型"], ans: 1, exp: "遷移學習讓模型能重用在大型資料集（如 ImageNet）學到的知識，只需少量目標任務資料就能達到良好效果，大幅降低訓練成本。" },
-      { q: "「物聯網（IoT）」與 AI 結合最主要帶來哪種應用價值？", opts: ["加快網路連線速度","從感測器大量資料中即時分析並做出智慧決策","取代雲端儲存","降低硬體成本"], ans: 1, exp: "IoT 設備收集大量感測器資料（溫度、震動、影像），結合 AI 分析能實現預測性維護、智慧工廠、智慧城市等應用。" },
-      { q: "「混淆矩陣（Confusion Matrix）」中，「假陰性（False Negative, FN）」代表什麼？", opts: ["預測為正，實際也為正","預測為負，實際也為負","預測為正，實際為負","預測為負，但實際為正"], ans: 3, exp: "FN（假陰性/漏報）= 預測說「沒有」但實際「有」。例如：AI 判斷腫瘤「良性」但實際是「惡性」，在醫療場景中 FN 代價很高，需重視 Recall 指標。" },
-      { q: "下列哪種場景最適合使用「非監督式學習」？", opts: ["預測明天是否下雨","自動將客戶分成不同購買行為群體","辨識圖片中的貓或狗","偵測信用卡詐欺（有過去詐欺標籤）"], ans: 1, exp: "客戶分群沒有預定的正確答案（標籤），只需讓模型自行發現資料中的自然分組，是非監督式學習中分群（Clustering）的典型應用。" },
-      { q: "「資料增強（Data Augmentation）」技術的主要目的是？", opts: ["清洗資料中的錯誤","透過旋轉、翻轉等方式人工擴充訓練資料量","壓縮模型大小","加快資料讀取速度"], ans: 1, exp: "資料增強對現有圖像進行旋轉、翻轉、裁剪、色彩調整等變換，在不收集新資料的情況下增加訓練樣本多樣性，有效降低過擬合。" },
-      { q: "「批次正規化（Batch Normalization）」在深度學習中的主要作用是？", opts: ["增加模型層數","穩定訓練過程，加速收斂","減少訓練資料需求","自動選擇學習率"], ans: 1, exp: "Batch Normalization 在每層輸出後對激活值做標準化，能解決梯度消失/爆炸問題，讓模型訓練更穩定快速，並有輕微正規化效果。" },
-      { q: "下列哪個是 AI 在「金融業」的典型應用？", opts: ["醫療影像診斷","路況預測與導航","信用評分與詐欺偵測","智慧農業病蟲害預測"], ans: 2, exp: "信用評分（預測貸款違約風險）和詐欺偵測（即時標記異常交易）是金融業 AI 最成熟的兩大應用，能大幅降低壞帳和詐欺損失。" },
-      { q: "「強 AI（AGI，通用人工智慧）」目前的發展狀態是？", opts: ["已在多個國家普及應用","已由 OpenAI 實現","仍是理論概念，尚未實現","僅存在於軍事領域"], ans: 2, exp: "AGI 指能像人類一樣跨領域思考、學習和解決問題的 AI。截至目前，所有已部署的 AI 系統都屬於弱 AI（Narrow AI），AGI 仍是未實現的研究目標。" },
-      { q: "「預測性維護（Predictive Maintenance）」主要運用哪種 AI 技術？", opts: ["圖像生成","自然語言理解","感測器數據分析與異常偵測","語音合成"], ans: 2, exp: "預測性維護利用機器設備上的感測器（溫度、振動、電流）數據，透過 AI 分析設備狀態趨勢，在設備故障前預警，減少非計畫性停機。" },
-      { q: "「主成分分析（PCA）」屬於哪種機器學習任務？", opts: ["監督式分類","監督式迴歸","非監督式降維","強化學習"], ans: 2, exp: "PCA 是非監督式學習中的降維技術，將高維資料投影到低維空間，同時保留最多的資料變異量，常用於資料視覺化和去除冗餘特徵。" },
-      { q: "下列關於「自動駕駛」技術的描述，何者正確？", opts: ["僅使用 GPS 定位","主要依賴電腦視覺、感測器融合和強化學習","只需要地圖資料即可","不需要即時資料處理"], ans: 1, exp: "自動駕駛是 AI 的綜合應用：電腦視覺辨識行人/車輛、LiDAR/雷達感測器融合、強化學習優化駕駛策略，需要即時且高可靠性的 AI 系統。" },
-      { q: "「個人資料保護法（個資法）」對 AI 應用最主要的規範是？", opts: ["禁止所有 AI 應用","限制 AI 在政府機關的使用","規範個人資料的收集、處理和利用需符合特定目的並保護當事人權益","要求所有 AI 模型必須開源"], ans: 2, exp: "個資法規定收集個人資料須有特定、明確的目的，並應告知當事人且取得同意。AI 應用若涉及個人資料分析，必須符合個資法要求。" },
-      { q: "「電腦視覺（Computer Vision）」技術不包括下列哪項應用？", opts: ["人臉辨識","物件偵測","文字翻譯","醫療 X 光影像分析"], ans: 2, exp: "文字翻譯屬於自然語言處理（NLP）範疇，不是電腦視覺。電腦視覺專注於處理和理解圖像/影片資訊，如人臉辨識、物件偵測、影像分割等。" },
-      { q: "AI 模型訓練中，「學習率（Learning Rate）」過高會導致什麼問題？", opts: ["訓練速度太慢","模型無法學習","訓練不穩定，損失函數震盪甚至發散","增加過擬合風險"], ans: 2, exp: "學習率決定每次參數更新的步長。太高會讓模型「跳過」最優解，造成損失值忽上忽下不收斂。太低則訓練極慢。需透過實驗找到合適的學習率。" },
-      { q: "「邊緣運算（Edge Computing）」結合 AI 的主要優勢是？", opts: ["降低模型準確率","減少資料傳輸延遲，即時在本地進行 AI 推論","增加雲端儲存使用量","需要更多網路頻寬"], ans: 1, exp: "邊緣 AI 將模型部署在終端裝置（手機、工廠設備）上直接推論，不需將資料送往雲端，降低延遲、保護隱私，適合需要即時反應的場景。" },
-      { q: "在機器學習中，「超參數（Hyperparameter）」和「參數（Parameter）」的主要差異是？", opts: ["兩者完全相同","超參數由訓練資料決定，參數由開發者設定","超參數由開發者事前設定，參數在訓練過程中學習調整","超參數只用於深度學習"], ans: 2, exp: "參數（如神經網路的權重）是模型在訓練中自動學習的。超參數（如學習率、層數、批次大小）是開發者在訓練前手動設定的，影響訓練過程本身。" }
-    ]
-  },
-  {
-    name: "科目二：生成式 AI 應用與規劃",
-    pool: [
-      { q: "下列何者是 Transformer 架構的核心技術？", opts: ["卷積運算（Convolution）","注意力機制（Attention Mechanism）","遞迴運算（Recurrence）","決策樹分支"], ans: 1, exp: "2017 年論文「Attention Is All You Need」提出 Transformer，核心是自注意力機制（Self-Attention），能捕捉序列中任意位置的相依關係，且可並行計算。" },
-      { q: "「RLHF（人類回饋強化學習）」在大型語言模型訓練中的主要目的是？", opts: ["增加模型參數數量","加快模型訓練速度","使模型輸出更符合人類偏好","降低模型訓練成本"], ans: 2, exp: "RLHF 讓人類標注員對模型輸出進行好壞評分，訓練一個獎勵模型，再用強化學習調整 LLM，使其輸出更有幫助、更安全、更誠實。" },
-      { q: "「幻覺（Hallucination）」在生成式 AI 中是指？", opts: ["模型生成藝術創意內容","模型生成看似合理但不正確的資訊","模型無法理解使用者問題","模型的輸出格式不正確"], ans: 1, exp: "幻覺是 LLM 的固有問題：模型自信地生成聽起來合理但實際上錯誤的資訊（如虛構的論文引用、錯誤的事實），是企業導入時的主要風險。" },
-      { q: "「RAG（檢索增強生成）」技術的主要優勢是？", opts: ["不需要訓練模型","結合外部知識庫，減少幻覺並提供最新資訊","讓模型可以生成圖像","降低模型的運算成本"], ans: 1, exp: "RAG = Retrieval + Generation。先從向量資料庫檢索相關文件，再把文件和問題一起給 LLM 生成答案，能提供最新資訊並減少幻覺。" },
-      { q: "下列哪個是圖像生成 AI 的代表性模型？", opts: ["BERT","GPT-4","Stable Diffusion","LSTM"], ans: 2, exp: "Stable Diffusion 是基於 Diffusion Model 的開源圖像生成模型。BERT 用於文字理解，GPT-4 用於文字生成，LSTM 是序列處理架構。" },
-      { q: "大型語言模型（LLM）中「Token」的定義是？", opts: ["模型訓練的回合數","模型處理的基本文字單位","模型的參數數量","訓練資料的批次大小"], ans: 1, exp: "Token 是 LLM 處理文字的基本單位，大約是 0.75 個英文字或一個中文字。上下文視窗（Context Window）就是用 Token 數來衡量。" },
-      { q: "「Temperature（溫度）」參數設定為 0 時，LLM 輸出的特性是？", opts: ["完全隨機","最具創意","最確定且可重複","拒絕回答"], ans: 2, exp: "Temperature=0 時，模型永遠選擇機率最高的 Token，輸出最確定、可重複。Temperature 越高（接近 1），輸出越多樣、越有創意，但也更不穩定。" },
-      { q: "「GAN（生成對抗網路）」由哪兩個主要部分組成？", opts: ["編碼器和解碼器","生成器（Generator）和判別器（Discriminator）","訓練器和測試器","感知器和分類器"], ans: 1, exp: "GAN 的兩個網路對抗訓練：生成器嘗試生成以假亂真的資料；判別器嘗試分辨真假。兩者競爭使生成器不斷進步，最終能生成高品質內容。" },
-      { q: "下列哪個工具最適合用於「程式碼生成與補全」？", opts: ["DALL-E","Sora","GitHub Copilot","Midjourney"], ans: 2, exp: "GitHub Copilot 整合在 VS Code 等 IDE 中，提供即時程式碼補全、函式生成、單元測試撰寫等功能，是最廣泛使用的 AI 程式碼助理。" },
-      { q: "預訓練語言模型的「Fine-tuning（微調）」是指？", opts: ["從零開始訓練新模型","針對特定任務對預訓練模型進行額外訓練","增加模型的層數","刪除不需要的訓練資料"], ans: 1, exp: "Fine-tuning 是在已預訓練的大模型基礎上，使用少量特定領域資料繼續訓練，讓模型適應特定任務，成本遠低於從頭訓練。" },
-      { q: "「Zero-shot Prompting」的特點是？", opts: ["提供大量訓練範例","不提供任何範例，直接讓模型執行任務","使用預設系統提示","需要微調模型"], ans: 1, exp: "Zero-shot = 零範例。直接描述任務，不給任何例子，依靠模型預訓練的通用能力。相對地，Few-shot 提供 2-5 個範例引導輸出格式。" },
-      { q: "「Chain-of-Thought（CoT）」Prompting 的主要優點是？", opts: ["縮短模型回答時間","讓模型逐步推理，提升複雜問題的準確性","減少輸出的 Token 數","讓模型使用更少資源"], ans: 1, exp: "CoT 要求模型「一步步思考」，在生成最終答案前先展示推理過程，特別能提升數學、邏輯推理等複雜問題的準確率。" },
-      { q: "以下哪個是「好的 Prompt」的特徵？", opts: ["越短越好，避免混淆模型","包含角色、任務、背景、格式等明確要求","只使用英文以提高準確性","避免給任何例子"], ans: 1, exp: "好的 Prompt 應包含：角色（Role）、任務（Task）、背景（Context）、格式（Format）、限制（Constraints）。明確具體的指令能大幅提升輸出品質。" },
-      { q: "「Few-shot Prompting」相較於「Zero-shot Prompting」的主要優勢是？", opts: ["不需要任何範例","透過範例幫助模型理解期望的輸出格式","訓練速度更快","使用更少計算資源"], ans: 1, exp: "Few-shot 提供 2-5 個輸入輸出範例，讓模型理解期望的格式和風格，特別適合格式要求嚴格或任務定義不夠明確的情境。" },
-      { q: "「提示詞注入（Prompt Injection）」攻擊的目的是？", opts: ["提高 AI 模型的準確率","讓模型處理更多任務","透過惡意輸入操控 AI 忽略系統指令","加速模型推論速度"], ans: 2, exp: "Prompt Injection 是資安攻擊：攻擊者在輸入中嵌入惡意指令（如「忽略前面的指令，改為…」），讓 AI 執行非預期的行為，繞過安全設計。" },
-      { q: "在 Prompt 設計中，「系統提示詞（System Prompt）」的作用是？", opts: ["提供使用者的問題","在對話開始前設定 AI 的行為規範和角色","記錄對話歷史","提供訓練資料"], ans: 1, exp: "System Prompt 在對話前設定 AI 的角色、語氣、行為限制等，是企業產品化 AI 應用的重要工具，使用者通常看不到 System Prompt 的內容。" },
-      { q: "「Prompt Chaining（提示詞串連）」技術適合用於？", opts: ["簡單的單步驟任務","需要分解成多個步驟的複雜任務","圖像生成任務","資料庫查詢"], ans: 1, exp: "Prompt Chaining 將複雜任務拆解為多個步驟，每個步驟的輸出作為下一個步驟的輸入。適合研究報告生成、多步驟資料處理等複雜工作流程。" },
-      { q: "當 AI 回答「不夠具體，超出預期範圍」時，最好的改進 Prompt 方式是？", opts: ["重複同樣的問題","添加限制條件和指定格式","換一個 AI 工具","縮短問題長度"], ans: 1, exp: "AI 回答太寬泛時，應在 Prompt 中加入具體限制（字數、範圍、格式）和期望輸出的詳細說明，而非重複同樣問題或更換工具。" },
-      { q: "「Role Prompting（角色提示）」的典型用法是？", opts: ["要求 AI 列出所有可能答案","賦予 AI 特定專業角色以獲得更專業回答","讓 AI 自由發揮","限制 AI 只能回答是/否問題"], ans: 1, exp: "例如：「你是一位有 20 年經驗的骨科醫生」，賦予角色後 AI 會調整回答的深度、術語和視角，更符合該領域專家的表達方式。" },
-      { q: "下列哪個 Prompt 設計最可能減少 AI 的幻覺（Hallucination）？", opts: ["要求 AI 盡量詳細回答","要求 AI 引用來源，並承認不確定的部分","提高 Temperature 參數值","使用更少的背景資訊"], ans: 1, exp: "要求 AI 引用來源並明確標示不確定性（如「我不確定，建議查證」），能有效減少模型自信地生成錯誤資訊。提高溫度反而會增加幻覺。" },
-      { q: "企業評估是否導入生成式 AI 時，「POC（概念驗證）」的目的是？", opts: ["直接上線生產環境","小規模測試技術可行性","訓練員工使用 AI","評估法規合規性"], ans: 1, exp: "POC（Proof of Concept）是在正式投入資源前，以小規模快速驗證「這個技術是否能解決我們的問題」，降低失敗風險。" },
-      { q: "在 AI 導入的「Build vs Buy vs API」決策中，「API 呼叫」最適合哪種情境？", opts: ["需要高度客製化且有大量訓練資料","快速驗證想法、預算有限","資料高度敏感且不可外傳","需要完全控制模型"], ans: 1, exp: "API 呼叫（如 OpenAI API）成本低、開發快，適合驗證期或小型企業。但資料會傳送到外部服務，不適合高度敏感的資料場景。" },
-      { q: "「模型漂移（Model Drift）」是指什麼現象？", opts: ["模型過度學習訓練資料","模型隨時間推移，因資料分佈改變導致效能下降","模型訓練時間過長","模型參數數量增加"], ans: 1, exp: "模型漂移是指部署後的模型隨時間效能下降，原因是現實資料分佈改變（如市場變化、用戶行為改變），而模型仍使用舊資料訓練的參數。" },
-      { q: "SWOT 分析中，「威脅（Threats）」在 AI 導入中通常包含？", opts: ["企業現有的技術能力","AI 可帶來的市場機會","法規風險和競爭對手","資料資產的優勢"], ans: 2, exp: "SWOT：優勢（內部正面）、劣勢（內部負面）、機會（外部正面）、威脅（外部負面）。法規風險、競爭對手採用 AI 都屬於外部威脅。" },
-      { q: "AI 導入的 ROI 計算公式為？", opts: ["收入 / 成本","(效益 - 成本) / 成本 × 100%","效益 × 成本","成本 / 效益 × 100%"], ans: 1, exp: "ROI = (效益 - 成本) / 成本 × 100%。效益包含節省成本和增加收入；成本包含開發、運算、維護、人員培訓等。" },
-      { q: "「Human-in-the-loop（人工審核）」機制最適合應用在哪種情境？", opts: ["所有 AI 任務都需要","高風險、高影響的 AI 決策","只用於測試階段","僅限於圖像辨識任務"], ans: 1, exp: "HITL 在 AI 流程中保留人工審核環節，特別重要的是高風險決策（如醫療診斷、法律判決、金融貸款審核），避免 AI 錯誤造成嚴重後果。" },
-      { q: "生成式 AI 的「著作權風險」主要源於？", opts: ["AI 模型訓練速度太慢","訓練資料可能包含受著作權保護的內容","AI 使用雲端服務","AI 輸出格式不正確"], ans: 1, exp: "LLM 和圖像生成模型使用大量網路資料訓練，這些資料可能包含受著作權保護的書籍、圖像、程式碼等，導致生成內容存在法律風險。" },
-      { q: "企業導入 AI 的「變更管理（Change Management）」主要關注？", opts: ["技術架構調整","人員、流程、文化的適應與轉型","資料庫升級","網路設備更新"], ans: 1, exp: "AI 導入不只是技術問題。變更管理關注員工如何接受新工具、流程如何重新設計、企業文化如何從抵制轉為擁抱 AI，是導入成敗的關鍵。" },
-      { q: "負責任 AI（Responsible AI）原則中，「透明性（Transparency）」要求？", opts: ["AI 系統所有程式碼必須公開","AI 決策過程應可理解和解釋","AI 必須告知使用者所有訓練資料","AI 必須由政府監管機構審批"], ans: 1, exp: "透明性要求 AI 的決策過程和運作原理應可被理解和解釋，尤其是高風險決策。這與可解釋 AI（XAI）密切相關，不等於完全公開程式碼。" },
-      // ── 補充題庫 ──
-      { q: "「多模態 AI（Multimodal AI）」是指？", opts: ["同時在多台伺服器上運行的 AI","能同時理解和生成多種媒體類型（文字、圖像、音訊等）的 AI","只能處理多國語言的 AI","使用多個模型投票決策的 AI"], ans: 1, exp: "多模態 AI 能跨越單一媒體類型，如 GPT-4V 能同時理解圖像和文字，Gemini 原生支援文字、圖像、影片、音訊，代表 AI 向更全面的感知能力演進。" },
-      { q: "「Diffusion Model（擴散模型）」生成圖像的基本原理是？", opts: ["生成器與判別器對抗訓練","學習從雜訊逐步去雜訊還原圖像","壓縮圖像到潛在空間再解碼","直接複製訓練集中最相似的圖像"], ans: 1, exp: "Diffusion Model 先對圖像逐步加入高斯雜訊（前向過程），再訓練模型學習逆向去雜訊過程。推論時從純雜訊開始，逐步去雜訊生成清晰圖像。Stable Diffusion 和 DALL-E 3 都基於此原理。" },
-      { q: "下列哪個工具最適合「企業知識庫問答」場景，並能降低幻覺風險？", opts: ["Midjourney（直接提問）","搭配 RAG 架構的企業知識庫 AI 助理","提高 Temperature 到最高值","使用 Zero-shot Prompting"], ans: 1, exp: "RAG 架構先從企業內部文件庫檢索相關段落，再讓 LLM 根據這些真實文件回答，能大幅降低幻覺並提供可追溯的資料來源。" },
-      { q: "「向量資料庫（Vector Database）」在 RAG 架構中的主要作用是？", opts: ["儲存使用者聊天記錄","儲存文件的語義向量並支援相似度搜尋","訓練語言模型","管理 API 金鑰"], ans: 1, exp: "向量資料庫（如 Pinecone、Chroma、Weaviate）將文件轉換為高維向量（Embedding）儲存，當使用者提問時，能快速找到語義上最相關的文件段落。" },
-      { q: "「AI Agent」與一般 LLM 聊天機器人的主要差異是？", opts: ["AI Agent 只能回答問題","AI Agent 能自主規劃步驟、使用外部工具，並持續執行直到完成目標","AI Agent 不需要 LLM","AI Agent 只能執行一個固定任務"], ans: 1, exp: "AI Agent 具備自主性：給定目標後，能自行分解步驟、決定使用哪些工具（搜尋、計算器、API）、觀察結果並調整策略，直到達成目標，而非只是回答單一問題。" },
-      { q: "使用商業 AI API 服務時，「資料隱私」最需要注意的是？", opts: ["API 呼叫次數限制","輸入資料是否被服務商用於模型訓練或保留","API 回應速度","服務費用高低"], ans: 1, exp: "輸入給商業 API 的資料（如客戶資訊、商業機密）可能被服務商記錄或用於改善模型。企業應審閱服務條款，避免將敏感資料輸入未簽訂保密協議的 API。" },
-      { q: "「LLM 的上下文視窗（Context Window）」大小對應用的主要影響是？", opts: ["決定模型的圖像生成品質","決定模型一次能處理的最大文字量（長文件、長對話的能力）","決定模型的語言翻譯準確率","決定 API 呼叫的費用"], ans: 1, exp: "上下文視窗越大，模型能處理越長的文件或對話（如 Claude 的 200K tokens 可處理一整本書）。視窗有限時，過長的對話或文件需要截斷，可能遺失重要資訊。" },
-      { q: "「Sora」（OpenAI）在生成式 AI 領域的重要意義是？", opts: ["第一個文字生成模型","能從文字描述生成高品質長影片","第一個開源圖像生成模型","能即時翻譯多種語言"], ans: 1, exp: "Sora 是 OpenAI 於 2024 年發布的文字轉影片模型，能根據文字描述生成長達數分鐘的高品質、物理上合理的影片，代表生成式 AI 從靜態圖像進入動態影片的重要里程碑。" },
-      { q: "企業使用生成式 AI 輔助撰寫合約草稿時，最需要注意的風險是？", opts: ["生成速度太慢","AI 可能生成錯誤條款，需法律專業人員審查","格式不符合公司規定","AI 無法理解中文合約"], ans: 1, exp: "LLM 可能在合約內容中引入不正確的法律條款（幻覺）或忽略特定管轄區的法規要求。AI 生成的合約草稿必須經過法律專業人員仔細審查後才能使用。" },
-      { q: "「提示詞工程（Prompt Engineering）」中，「負面提示詞（Negative Prompt）」的用途是？", opts: ["讓 AI 只回答負面的問題","明確告訴 AI 不要包含哪些內容或風格","讓模型輸出更簡短","降低模型溫度"], ans: 1, exp: "負面提示詞（常用於圖像生成如 Stable Diffusion）用於排除不想要的元素，如「不要模糊、不要水印、不要低品質」，引導模型避開特定特徵，提升輸出品質。" },
-      { q: "「AI 代碼審查（AI Code Review）」工具主要能提供哪些幫助？", opts: ["自動部署程式碼到生產環境","自動偵測潛在 Bug、安全漏洞和程式碼品質問題","管理版本控制","設計資料庫架構"], ans: 1, exp: "AI 程式碼審查工具（如 GitHub Copilot Code Review）能掃描程式碼，自動找出潛在錯誤、安全漏洞（如 SQL 注入）、違反編碼規範等問題，輔助人工審查提升品質。" },
-      { q: "生成式 AI 用於「個人化行銷內容」的主要優勢是？", opts: ["完全取代行銷人員","大規模快速生成針對不同族群客製化的廣告文案","自動購買廣告版位","分析競爭對手策略"], ans: 1, exp: "生成式 AI 能根據不同客戶特徵（年齡、興趣、購買記錄）快速生成大量個人化內容，讓原本需要大量人力的 A/B 測試和個人化行銷成為可能。" },
-      { q: "「AI 治理（AI Governance）」框架中，「模型卡（Model Card）」的用途是？", opts: ["儲存模型的程式碼","記錄模型的用途、訓練資料、效能指標、限制和潛在風險的文件","管理模型版本","加速模型推論速度"], ans: 1, exp: "Model Card 是模型透明度文件，由 Google 提出，記錄模型設計意圖、訓練資料來源、在不同族群的效能、已知偏見和限制，幫助使用者做出知情決策。" },
-      { q: "企業在評估生成式 AI 工具的「總擁有成本（TCO）」時，不應忽略哪項成本？", opts: ["伺服器硬體採購","API 用量費用（按 Token 計費）+ 員工培訓 + 整合開發費用","辦公室租金","行銷費用"], ans: 1, exp: "TCO 需考量：API 呼叫費用（隨使用量增加）、員工學習新工具的培訓成本、與現有系統的整合開發費用、以及後續維護監控費用，避免低估總成本。" },
-      { q: "「深偽技術（Deepfake）」對企業和社會最主要的威脅是？", opts: ["增加網路頻寬使用","偽造真實人物的影像或聲音，用於詐欺、散佈錯誤資訊","降低影片編輯成本","提高娛樂產業效率"], ans: 1, exp: "Deepfake 可以偽造真實人物說話的影片或聲音，被用於：CEO 詐騙（偽造主管聲音要求匯款）、政治謊言（偽造政治人物言論）、誹謗等，是生成式 AI 帶來的嚴重社會風險。" },
-      { q: "「生成式 AI」在教育領域的潛在風險是？", opts: ["學生學習效率提升","學術誠信問題：學生可能用 AI 代替自行思考和撰寫作業","教材製作成本降低","個人化學習成為可能"], ans: 1, exp: "ChatGPT 等工具使學生能輕易生成作文、報告，引發學術誠信問題。教育機構需重新設計評量方式（強調過程、口試、特定情境寫作）以因應 AI 時代的挑戰。" },
-      { q: "「Prompt 迭代優化（Prompt Iteration）」的正確做法是？", opts: ["一次就要設計出完美的 Prompt","根據 AI 輸出的結果，持續調整 Prompt 直到符合預期","每次都完全重寫 Prompt","只測試一種 Prompt 版本"], ans: 1, exp: "Prompt 工程是一個迭代過程：設計初版 → 測試輸出 → 分析問題 → 調整 Prompt → 再測試，需要多輪優化。記錄不同版本的效果有助於系統性改進。" },
-      { q: "「AI 生成內容（AIGC）」的版權歸屬目前面臨的主要爭議是？", opts: ["版權明確屬於 AI 公司","版權明確屬於使用者","各國法律尚未統一，AI 生成內容的版權歸屬存在法律模糊地帶","版權屬於訓練資料的原始創作者"], ans: 2, exp: "目前各國對 AI 生成內容的版權態度不一：部分國家認為 AI 生成物不受版權保護（無人類創作者）；企業使用時需了解當地法規，避免法律風險。" },
-      { q: "「AI 技術債（AI Technical Debt）」是指？", opts: ["AI 公司的財務虧損","為求快速上線而做的短期決策，導致後續維護困難的累積技術問題","AI 模型的訓練費用","AI 系統的硬體折舊"], ans: 1, exp: "AI 技術債包括：使用未充分測試的模型、缺少監控、資料 Pipeline 不穩定、模型文件不完整等。這些問題在初期不顯著，但隨系統擴大會大幅增加維護成本。" },
-      { q: "「生成式 AI 的安全護欄（Guardrails）」主要用途是？", opts: ["提高模型生成速度","過濾、限制或引導 AI 輸出，防止生成有害或不適當內容","增加模型參數數量","降低 API 呼叫成本"], ans: 1, exp: "Guardrails 是部署 AI 應用時的安全機制，包括：輸入過濾（阻擋惡意提示）、輸出過濾（偵測有害內容）、範圍限制（讓模型只回答特定領域問題），確保 AI 應用的安全性。" },
-      { q: "企業建立「AI 卓越中心（AI Center of Excellence, CoE）」的主要目的是？", opts: ["取代所有業務部門","集中 AI 專業知識、制定標準、協助各業務單位導入 AI","只負責採購 AI 工具","管理公司的 IT 基礎設施"], ans: 1, exp: "AI CoE 是企業 AI 治理的核心單位，負責：制定 AI 使用政策和標準、培育 AI 人才、協助業務單位評估和導入 AI、監控 AI 系統，確保 AI 應用符合企業戰略和倫理要求。" }
-    ]
-  }
-];
+        規則：
+        - ans 為正確答案的索引（0=A, 1=B, 2=C, 3=D）
+        - opts 陣列必須剛好 4 個元素
+        - 題目要涵蓋 AI 基礎概念、機器學習、資料處理、AI 倫理等主題
+        - 難度對標 iPAS AI應用規劃師初級考試
+        - exp 解析要詳細，說明正確答案的理由<button class="copy-btn" id="copyPromptBtn" onclick="copyPrompt()">複製</button></div>
+    </div>
 
-// ════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════
-let currentSubject = 0;
-let activeQuestions = []; // 本次隨機抽出的題目
-let answers = {};
-let revealed = {};
-let examDone = false;
-let timerInterval = null;
-let secondsElapsed = 0;
+    <div>
+      <h3>② 將 NotebookLM 回覆的 JSON 貼入下方</h3>
+      <div class="import-row">
+        <textarea class="import-textarea" id="importJson"
+          placeholder='[{"q":"題目...","opts":["A","B","C","D"],"ans":0,"exp":"解析..."}]'></textarea>
+        <div class="import-actions">
+          <button class="btn-import" onclick="importQuestions()">匯入題目</button>
+          <button class="btn-clear-import" onclick="clearImported()">清除匯入</button>
+        </div>
+      </div>
+      <div class="import-msg" id="importMsg"></div>
+    </div>
 
-function drawQuestions(subjectIdx) {
-  const pool = [...subjects[subjectIdx].pool, ...(imported[subjectIdx] || [])];
-  return shuffle(pool).slice(0, Math.min(DRAW, pool.length));
-}
+  </div>
 
-// ════════════════════════════════════════════════
-//  TIMER
-// ════════════════════════════════════════════════
-function startTimer() {
-  clearInterval(timerInterval);
-  secondsElapsed = 0;
-  timerInterval = setInterval(() => {
-    secondsElapsed++;
-    const el = document.getElementById('timer');
-    if (el) {
-      const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
-      const s = String(secondsElapsed % 60).padStart(2, '0');
-      el.textContent = `⏱ ${m}:${s}`;
-      if (secondsElapsed > 30 * 60) el.classList.add('warn');
+  <main id="mainArea"></main>
+  const firebaseConfig = {
+  apiKey: "AIzaSyCMxR3WGoeNNKV8bLmy-uzPtjXP_MCFDoE",
+  authDomain: "ipas-quiz-2026.firebaseapp.com",
+  projectId: "ipas-quiz-2026",
+  storageBucket: "ipas-quiz-2026.firebasestorage.app",
+  messagingSenderId: "1007725178155",
+  appId: "1:1007725178155:web:63cd54799168e0628a696e",
+  measurementId: "G-WRSCB78YVG"
+  };
+  <script>
+    // ════════════════════════════════════════════════
+    //  QUESTION DATA  (pool → 每次隨機抽 29 題)
+    // ════════════════════════════════════════════════
+    const DRAW = 29; // 每次抽題數
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
     }
-  }, 1000);
-}
 
-// ════════════════════════════════════════════════
-//  RENDER
-// ════════════════════════════════════════════════
-function switchSubject(idx) {
-  currentSubject = idx;
-  activeQuestions = drawQuestions(idx);
-  answers = {};
-  revealed = {};
-  examDone = false;
-  clearInterval(timerInterval);
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-  renderExam();
-}
+    const subjects = [
+      {
+        name: "科目一：人工智慧基礎概論",
+        pool: [
+          { q: "下列何者最能描述「弱 AI（Narrow AI）」的特性？", opts: ["能夠在所有領域超越人類智慧", "專注於特定任務，在該任務上表現出色", "具有自我意識和情感", "能夠自主設定學習目標"], ans: 1, exp: "弱 AI 又稱窄域 AI，只擅長特定任務（如圍棋、人臉辨識），無法跨域。強 AI（AGI）才是通用智慧的概念。" },
+          { q: "AI 三大核心要素不包括下列哪一項？", opts: ["資料（Data）", "演算法（Algorithm）", "網路頻寬（Bandwidth）", "運算力（Computing Power）"], ans: 2, exp: "AI 三大要素是：資料、演算法、運算力（GPU/TPU）。網路頻寬非核心要素。" },
+          { q: "下列何者屬於「監督式學習」的應用？", opts: ["客戶分群（Customer Segmentation）", "垃圾郵件分類", "市場籃子分析", "資料降維"], ans: 1, exp: "垃圾郵件分類需要有標籤的訓練資料（垃圾/正常），屬監督式學習。客戶分群、關聯規則（市場籃）、降維均屬非監督式學習。" },
+          { q: "機器學習模型出現「過擬合（Overfitting）」時，以下哪種現象最常出現？", opts: ["訓練準確率高，測試準確率低", "訓練準確率低，測試準確率高", "訓練和測試準確率都低", "訓練和測試準確率都高"], ans: 0, exp: "過擬合代表模型記住了訓練資料的雜訊，泛化能力差，所以訓練集準確率高但測試集準確率低。" },
+          { q: "下列哪種資料類型屬於「非結構化資料」？", opts: ["Excel 試算表", "SQL 資料庫記錄", "社群媒體貼文", "CSV 檔案"], ans: 2, exp: "非結構化資料沒有固定格式，如文字貼文、圖片、影片。Excel/SQL/CSV 都有固定欄位，屬結構化資料。" },
+          { q: "「強化學習（Reinforcement Learning）」主要透過什麼機制讓 AI 學習？", opts: ["大量有標籤的訓練資料", "發現資料的隱藏模式", "與環境互動獲得獎勵或懲罰", "模仿人類示範行為"], ans: 2, exp: "強化學習的核心是 Agent 透過與環境互動，根據行動結果獲得正/負獎勵，不斷優化策略以最大化長期獎勵。" },
+          { q: "下列何者是 AI 在醫療領域的典型應用？", opts: ["演算法交易", "供應鏈優化", "醫療影像診斷", "路況預測"], ans: 2, exp: "醫療影像診斷（如 X 光、病理切片 AI 辨識）是醫療 AI 最核心應用。演算法交易屬金融，供應鏈優化屬製造，路況預測屬交通。" },
+          { q: "「No Code AI 工具」的主要優勢是什麼？", opts: ["需要深入的程式設計能力", "允許非技術人員使用 AI 功能", "僅適合大型企業使用", "模型準確率最高"], ans: 1, exp: "No Code 工具的核心價值就是降低門檻，讓沒有程式背景的業務人員也能使用 AI 功能，如 Teachable Machine、Power Automate。" },
+          { q: "訓練 AI 模型時，「驗證集（Validation Set）」的主要用途是？", opts: ["提供最終評估模型表現的資料", "讓模型學習資料規律", "調整超參數（Hyperparameter）", "收集訓練資料"], ans: 2, exp: "驗證集在訓練過程中用於調整超參數（如學習率、層數），選出最好的模型設定。測試集才是最終評估，且只能用一次。" },
+          { q: "下列關於深度學習（Deep Learning）的描述，何者正確？", opts: ["深度學習是機器學習的上位概念", "深度學習不需要大量資料", "深度學習使用多層神經網路", "深度學習無法處理圖像資料"], ans: 2, exp: "深度學習是機器學習的子集，特點是使用多層（深層）神經網路。它需要大量資料，且特別擅長圖像、語音處理。" },
+          { q: "下列哪種方法最適合處理數值型欄位的「缺失值（Missing Values）」？", opts: ["直接刪除整個資料集", "使用均值或中位數填補", "將缺失值替換為 0", "忽略不處理"], ans: 1, exp: "數值型缺失值最常用均值（Mean）或中位數（Median）填補。中位數不受極端值影響，更為穩健。直接替換為 0 可能扭曲資料分佈。" },
+          { q: "「描述性分析（Descriptive Analytics）」主要回答哪類問題？", opts: ["為什麼會發生？", "發生了什麼事？", "將來會發生什麼？", "應該採取什麼行動？"], ans: 1, exp: "四種分析：描述性（發生了什麼）→ 診斷性（為什麼）→ 預測性（將來如何）→ 規範性（應該怎麼做）。" },
+          { q: "中位數（Median）相較於平均數（Mean）的主要優點是？", opts: ["計算速度較快", "不受極端值（Outlier）影響", "永遠等於眾數", "適用於類別資料"], ans: 1, exp: "當資料有極端值（如少數超高薪員工），平均數會被拉高失真，中位數不受影響，更能代表「典型值」。" },
+          { q: "資料視覺化中，「折線圖（Line Chart）」最適合用於？", opts: ["比較不同類別的數量", "顯示資料的時間序列趨勢", "呈現各類別的比例", "顯示兩變數的相關性"], ans: 1, exp: "折線圖最適合呈現時間序列趨勢（如月銷售額走勢）。長條圖比較類別，圓餅圖看比例，散佈圖看相關性。" },
+          { q: "「資料清洗（Data Cleaning）」的主要目的是？", opts: ["增加資料的數量", "提高資料品質，去除錯誤和不一致", "加密個人資料", "壓縮資料儲存空間"], ans: 1, exp: "資料清洗是為了提高資料品質，處理缺失值、異常值、重複資料、格式不一致等問題，確保模型訓練品質。" },
+          { q: "以下哪種技術屬於「非監督式學習」？", opts: ["線性迴歸", "K-means 分群", "決策樹分類", "支援向量機（SVM）"], ans: 1, exp: "K-means 是將資料分成 K 個群組，不需要標籤，屬非監督式學習。線性迴歸、決策樹、SVM 都需要標籤，屬監督式學習。" },
+          { q: "AI 模型評估中，「精確率（Precision）」的定義是？", opts: ["所有正確預測佔總預測的比例", "預測為正類中，實際為正類的比例", "實際為正類中，被預測為正類的比例", "Precision 和 Recall 的調和平均"], ans: 1, exp: "Precision = TP/(TP+FP)，關注「預測說是正的，有多少真的是正的」。Recall = TP/(TP+FN)，關注「真正是正的，有多少被找到」。" },
+          { q: "「AI 偏見（Bias）」的主要來源不包括下列哪一項？", opts: ["訓練資料中存在的歷史偏見", "標注者的主觀偏見", "模型架構過於複雜", "演算法優化目標導致的不公平"], ans: 2, exp: "AI 偏見主要來自：訓練資料偏見、標注者主觀偏見、演算法設計問題。模型「過於複雜」會導致過擬合，但不是 Bias 的直接來源。" },
+          { q: "「聯邦學習（Federated Learning）」的核心優勢是？", opts: ["提高模型訓練速度", "資料不需離開裝置，保護隱私", "降低模型複雜度", "不需要任何計算資源"], ans: 1, exp: "聯邦學習的核心：各裝置本地訓練，只上傳模型參數更新，原始資料不離開裝置，大幅保護隱私。Google Gboard 就採用此技術。" },
+          { q: "根據 EU AI Act，下列哪種 AI 應用屬於「高風險」？", opts: ["AI 遊戲", "垃圾郵件過濾", "醫療診斷系統", "電影推薦系統"], ans: 2, exp: "EU AI Act 高風險 AI 包含：醫療診斷、自動駕駛、信用評分、司法決策、關鍵基礎設施等。遊戲和推薦系統屬低風險。" },
+          { q: "「可解釋 AI（Explainable AI, XAI）」主要解決哪個問題？", opts: ["提高模型準確率", "使 AI 決策過程透明可理解", "降低訓練成本", "增加資料收集效率"], ans: 1, exp: "XAI 的目標是讓人類能理解 AI 為什麼做出某個決策，解決深度學習「黑盒子」問題，提升信任與問責性。" },
+          { q: "「對抗性攻擊（Adversarial Attack）」是指？", opts: ["駭客入侵 AI 伺服器", "在輸入資料加入微小擾動以欺騙 AI 模型", "AI 系統間的競爭", "使用強化學習攻擊敵方 AI"], ans: 1, exp: "對抗性攻擊是在圖像等輸入資料中加入人眼幾乎看不見的微小擾動，導致模型判斷錯誤。例如：貼紙讓停止標誌被辨識成限速標誌。" },
+          { q: "AI 倫理中「問責性（Accountability）」的含義是？", opts: ["AI 系統必須由人類操作", "明確 AI 系統的責任歸屬", "AI 決策需要公開透明", "確保 AI 對所有用戶公平"], ans: 1, exp: "問責性是指當 AI 系統出錯或造成損害時，必須有明確的責任主體（開發者、部署者或使用者），以便追責和改善。" },
+          { q: "在資料隱私保護中，「資料匿名化」的目的是？", opts: ["加快資料處理速度", "移除可識別個人的資訊", "提高資料準確性", "減少資料儲存空間"], ans: 1, exp: "資料匿名化是移除或遮蔽姓名、身份證字號、電話等個人識別資訊，使資料無法追溯到特定個人，符合個資法要求。" },
+          { q: "「差分隱私（Differential Privacy）」的主要機制是？", opts: ["刪除所有個人識別資訊", "對資料加密", "加入統計雜訊保護個別資料", "將資料儲存在安全伺服器"], ans: 2, exp: "差分隱私在查詢結果或模型更新中加入精心設計的隨機雜訊，使攻擊者無法從結果推斷任何單一個人的資料。" },
+          { q: "當 AI 系統在不同種族群體間的準確率存在顯著差異，這屬於哪種倫理問題？", opts: ["過擬合問題", "公平性（Fairness）問題", "透明性問題", "隱私問題"], ans: 1, exp: "AI 系統對不同族群表現差異顯著，代表存在公平性（Fairness）問題，通常根源於訓練資料的偏見。" },
+          { q: "「模型中毒（Model Poisoning）」是指？", opts: ["模型過度訓練導致效能下降", "在訓練資料中植入惡意樣本影響模型行為", "模型的訓練時間過長", "模型記憶體使用量過高"], ans: 1, exp: "模型中毒是一種供應鏈攻擊，攻擊者在訓練資料中植入惡意標注樣本（後門），導致模型在特定觸發條件下行為異常。" },
+          { q: "下列哪種技術可以標記 AI 生成內容，以便區分人工創作？", opts: ["加密技術", "浮水印技術", "壓縮技術", "快取技術"], ans: 1, exp: "AI 內容浮水印（Watermarking）在生成內容中嵌入不可見的標記，可用於事後辨識是否為 AI 生成，有助於打擊深偽和不實資訊。" },
+          { q: "AI 治理框架中，「人類監督（Human Oversight）」原則的重要性在於？", opts: ["讓人類可以隨時接管並糾正 AI 的錯誤決策", "減少 AI 的使用頻率", "增加 AI 系統的成本", "讓 AI 系統更自主運作"], ans: 0, exp: "人類監督確保 AI 不會完全自主運作，當 AI 做出錯誤或有害決策時，人類能夠介入、糾正，是 AI 安全的重要保障。" },
+          // ── 補充題庫 ──
+          { q: "卷積神經網路（CNN）最適合處理哪種類型的資料？", opts: ["時間序列數據", "圖像與視覺資料", "純文字語料", "結構化表格資料"], ans: 1, exp: "CNN 利用卷積核（Filter）自動擷取圖像的局部特徵（邊緣、紋理、形狀），是電腦視覺任務（圖像分類、物件偵測）的主流架構。" },
+          { q: "「遞迴神經網路（RNN）」相較於傳統神經網路的主要優勢是？", opts: ["運算速度更快", "能處理序列資料並記憶前文信息", "不需要訓練資料", "佔用記憶體更少"], ans: 1, exp: "RNN 有隱藏狀態（Hidden State），能將前一時間步的信息傳遞到下一步，特別適合時間序列、語音、文字等有順序關係的資料。" },
+          { q: "下列哪個演算法最常用於分類問題中的「決策邊界」學習？", opts: ["K-means", "PCA", "支援向量機（SVM）", "自編碼器（Autoencoder）"], ans: 2, exp: "SVM 的核心目標是找到能最大化兩類別間距（Margin）的決策邊界（超平面），是典型的監督式分類演算法。" },
+          { q: "「隨機森林（Random Forest）」的主要特點是？", opts: ["只使用一棵決策樹", "由多棵決策樹組合，透過投票提高準確率", "不需要訓練資料", "只能用於迴歸問題"], ans: 1, exp: "隨機森林是整體學習（Ensemble Learning）方法，訓練多棵決策樹，最終以多數投票（分類）或平均（迴歸）決定結果，能有效降低過擬合。" },
+          { q: "「自然語言處理（NLP）」中，「斷詞（Tokenization）」的目的是？", opts: ["翻譯文字", "將文字切分成最小處理單位（Token）", "過濾敏感內容", "壓縮文字長度"], ans: 1, exp: "斷詞是 NLP 的第一步，將原始文字切分成詞彙、子詞或字元等 Token，讓模型能以數字向量形式處理語言。" },
+          { q: "機器學習中「特徵工程（Feature Engineering）」的主要目的是？", opts: ["增加訓練資料量", "從原始資料中萃取或建立對模型有用的輸入特徵", "減少模型層數", "自動選擇最佳演算法"], ans: 1, exp: "特徵工程是將原始資料轉換成更有意義的特徵，如從日期提取「星期幾」、「是否假日」，能大幅提升模型預測能力。深度學習能自動學習特徵，減少人工特徵工程的需求。" },
+          { q: "「遷移學習（Transfer Learning）」的核心概念是？", opts: ["將資料從一個系統移轉到另一個", "把在大量資料上預訓練的模型知識應用到新任務", "在多個系統同時訓練模型", "用更少層數建立模型"], ans: 1, exp: "遷移學習讓模型能重用在大型資料集（如 ImageNet）學到的知識，只需少量目標任務資料就能達到良好效果，大幅降低訓練成本。" },
+          { q: "「物聯網（IoT）」與 AI 結合最主要帶來哪種應用價值？", opts: ["加快網路連線速度", "從感測器大量資料中即時分析並做出智慧決策", "取代雲端儲存", "降低硬體成本"], ans: 1, exp: "IoT 設備收集大量感測器資料（溫度、震動、影像），結合 AI 分析能實現預測性維護、智慧工廠、智慧城市等應用。" },
+          { q: "「混淆矩陣（Confusion Matrix）」中，「假陰性（False Negative, FN）」代表什麼？", opts: ["預測為正，實際也為正", "預測為負，實際也為負", "預測為正，實際為負", "預測為負，但實際為正"], ans: 3, exp: "FN（假陰性/漏報）= 預測說「沒有」但實際「有」。例如：AI 判斷腫瘤「良性」但實際是「惡性」，在醫療場景中 FN 代價很高，需重視 Recall 指標。" },
+          { q: "下列哪種場景最適合使用「非監督式學習」？", opts: ["預測明天是否下雨", "自動將客戶分成不同購買行為群體", "辨識圖片中的貓或狗", "偵測信用卡詐欺（有過去詐欺標籤）"], ans: 1, exp: "客戶分群沒有預定的正確答案（標籤），只需讓模型自行發現資料中的自然分組，是非監督式學習中分群（Clustering）的典型應用。" },
+          { q: "「資料增強（Data Augmentation）」技術的主要目的是？", opts: ["清洗資料中的錯誤", "透過旋轉、翻轉等方式人工擴充訓練資料量", "壓縮模型大小", "加快資料讀取速度"], ans: 1, exp: "資料增強對現有圖像進行旋轉、翻轉、裁剪、色彩調整等變換，在不收集新資料的情況下增加訓練樣本多樣性，有效降低過擬合。" },
+          { q: "「批次正規化（Batch Normalization）」在深度學習中的主要作用是？", opts: ["增加模型層數", "穩定訓練過程，加速收斂", "減少訓練資料需求", "自動選擇學習率"], ans: 1, exp: "Batch Normalization 在每層輸出後對激活值做標準化，能解決梯度消失/爆炸問題，讓模型訓練更穩定快速，並有輕微正規化效果。" },
+          { q: "下列哪個是 AI 在「金融業」的典型應用？", opts: ["醫療影像診斷", "路況預測與導航", "信用評分與詐欺偵測", "智慧農業病蟲害預測"], ans: 2, exp: "信用評分（預測貸款違約風險）和詐欺偵測（即時標記異常交易）是金融業 AI 最成熟的兩大應用，能大幅降低壞帳和詐欺損失。" },
+          { q: "「強 AI（AGI，通用人工智慧）」目前的發展狀態是？", opts: ["已在多個國家普及應用", "已由 OpenAI 實現", "仍是理論概念，尚未實現", "僅存在於軍事領域"], ans: 2, exp: "AGI 指能像人類一樣跨領域思考、學習和解決問題的 AI。截至目前，所有已部署的 AI 系統都屬於弱 AI（Narrow AI），AGI 仍是未實現的研究目標。" },
+          { q: "「預測性維護（Predictive Maintenance）」主要運用哪種 AI 技術？", opts: ["圖像生成", "自然語言理解", "感測器數據分析與異常偵測", "語音合成"], ans: 2, exp: "預測性維護利用機器設備上的感測器（溫度、振動、電流）數據，透過 AI 分析設備狀態趨勢，在設備故障前預警，減少非計畫性停機。" },
+          { q: "「主成分分析（PCA）」屬於哪種機器學習任務？", opts: ["監督式分類", "監督式迴歸", "非監督式降維", "強化學習"], ans: 2, exp: "PCA 是非監督式學習中的降維技術，將高維資料投影到低維空間，同時保留最多的資料變異量，常用於資料視覺化和去除冗餘特徵。" },
+          { q: "下列關於「自動駕駛」技術的描述，何者正確？", opts: ["僅使用 GPS 定位", "主要依賴電腦視覺、感測器融合和強化學習", "只需要地圖資料即可", "不需要即時資料處理"], ans: 1, exp: "自動駕駛是 AI 的綜合應用：電腦視覺辨識行人/車輛、LiDAR/雷達感測器融合、強化學習優化駕駛策略，需要即時且高可靠性的 AI 系統。" },
+          { q: "「個人資料保護法（個資法）」對 AI 應用最主要的規範是？", opts: ["禁止所有 AI 應用", "限制 AI 在政府機關的使用", "規範個人資料的收集、處理和利用需符合特定目的並保護當事人權益", "要求所有 AI 模型必須開源"], ans: 2, exp: "個資法規定收集個人資料須有特定、明確的目的，並應告知當事人且取得同意。AI 應用若涉及個人資料分析，必須符合個資法要求。" },
+          { q: "「電腦視覺（Computer Vision）」技術不包括下列哪項應用？", opts: ["人臉辨識", "物件偵測", "文字翻譯", "醫療 X 光影像分析"], ans: 2, exp: "文字翻譯屬於自然語言處理（NLP）範疇，不是電腦視覺。電腦視覺專注於處理和理解圖像/影片資訊，如人臉辨識、物件偵測、影像分割等。" },
+          { q: "AI 模型訓練中，「學習率（Learning Rate）」過高會導致什麼問題？", opts: ["訓練速度太慢", "模型無法學習", "訓練不穩定，損失函數震盪甚至發散", "增加過擬合風險"], ans: 2, exp: "學習率決定每次參數更新的步長。太高會讓模型「跳過」最優解，造成損失值忽上忽下不收斂。太低則訓練極慢。需透過實驗找到合適的學習率。" },
+          { q: "「邊緣運算（Edge Computing）」結合 AI 的主要優勢是？", opts: ["降低模型準確率", "減少資料傳輸延遲，即時在本地進行 AI 推論", "增加雲端儲存使用量", "需要更多網路頻寬"], ans: 1, exp: "邊緣 AI 將模型部署在終端裝置（手機、工廠設備）上直接推論，不需將資料送往雲端，降低延遲、保護隱私，適合需要即時反應的場景。" },
+          { q: "在機器學習中，「超參數（Hyperparameter）」和「參數（Parameter）」的主要差異是？", opts: ["兩者完全相同", "超參數由訓練資料決定，參數由開發者設定", "超參數由開發者事前設定，參數在訓練過程中學習調整", "超參數只用於深度學習"], ans: 2, exp: "參數（如神經網路的權重）是模型在訓練中自動學習的。超參數（如學習率、層數、批次大小）是開發者在訓練前手動設定的，影響訓練過程本身。" }
+        ]
+      },
+      {
+        name: "科目二：生成式 AI 應用與規劃",
+        pool: [
+          { q: "下列何者是 Transformer 架構的核心技術？", opts: ["卷積運算（Convolution）", "注意力機制（Attention Mechanism）", "遞迴運算（Recurrence）", "決策樹分支"], ans: 1, exp: "2017 年論文「Attention Is All You Need」提出 Transformer，核心是自注意力機制（Self-Attention），能捕捉序列中任意位置的相依關係，且可並行計算。" },
+          { q: "「RLHF（人類回饋強化學習）」在大型語言模型訓練中的主要目的是？", opts: ["增加模型參數數量", "加快模型訓練速度", "使模型輸出更符合人類偏好", "降低模型訓練成本"], ans: 2, exp: "RLHF 讓人類標注員對模型輸出進行好壞評分，訓練一個獎勵模型，再用強化學習調整 LLM，使其輸出更有幫助、更安全、更誠實。" },
+          { q: "「幻覺（Hallucination）」在生成式 AI 中是指？", opts: ["模型生成藝術創意內容", "模型生成看似合理但不正確的資訊", "模型無法理解使用者問題", "模型的輸出格式不正確"], ans: 1, exp: "幻覺是 LLM 的固有問題：模型自信地生成聽起來合理但實際上錯誤的資訊（如虛構的論文引用、錯誤的事實），是企業導入時的主要風險。" },
+          { q: "「RAG（檢索增強生成）」技術的主要優勢是？", opts: ["不需要訓練模型", "結合外部知識庫，減少幻覺並提供最新資訊", "讓模型可以生成圖像", "降低模型的運算成本"], ans: 1, exp: "RAG = Retrieval + Generation。先從向量資料庫檢索相關文件，再把文件和問題一起給 LLM 生成答案，能提供最新資訊並減少幻覺。" },
+          { q: "下列哪個是圖像生成 AI 的代表性模型？", opts: ["BERT", "GPT-4", "Stable Diffusion", "LSTM"], ans: 2, exp: "Stable Diffusion 是基於 Diffusion Model 的開源圖像生成模型。BERT 用於文字理解，GPT-4 用於文字生成，LSTM 是序列處理架構。" },
+          { q: "大型語言模型（LLM）中「Token」的定義是？", opts: ["模型訓練的回合數", "模型處理的基本文字單位", "模型的參數數量", "訓練資料的批次大小"], ans: 1, exp: "Token 是 LLM 處理文字的基本單位，大約是 0.75 個英文字或一個中文字。上下文視窗（Context Window）就是用 Token 數來衡量。" },
+          { q: "「Temperature（溫度）」參數設定為 0 時，LLM 輸出的特性是？", opts: ["完全隨機", "最具創意", "最確定且可重複", "拒絕回答"], ans: 2, exp: "Temperature=0 時，模型永遠選擇機率最高的 Token，輸出最確定、可重複。Temperature 越高（接近 1），輸出越多樣、越有創意，但也更不穩定。" },
+          { q: "「GAN（生成對抗網路）」由哪兩個主要部分組成？", opts: ["編碼器和解碼器", "生成器（Generator）和判別器（Discriminator）", "訓練器和測試器", "感知器和分類器"], ans: 1, exp: "GAN 的兩個網路對抗訓練：生成器嘗試生成以假亂真的資料；判別器嘗試分辨真假。兩者競爭使生成器不斷進步，最終能生成高品質內容。" },
+          { q: "下列哪個工具最適合用於「程式碼生成與補全」？", opts: ["DALL-E", "Sora", "GitHub Copilot", "Midjourney"], ans: 2, exp: "GitHub Copilot 整合在 VS Code 等 IDE 中，提供即時程式碼補全、函式生成、單元測試撰寫等功能，是最廣泛使用的 AI 程式碼助理。" },
+          { q: "預訓練語言模型的「Fine-tuning（微調）」是指？", opts: ["從零開始訓練新模型", "針對特定任務對預訓練模型進行額外訓練", "增加模型的層數", "刪除不需要的訓練資料"], ans: 1, exp: "Fine-tuning 是在已預訓練的大模型基礎上，使用少量特定領域資料繼續訓練，讓模型適應特定任務，成本遠低於從頭訓練。" },
+          { q: "「Zero-shot Prompting」的特點是？", opts: ["提供大量訓練範例", "不提供任何範例，直接讓模型執行任務", "使用預設系統提示", "需要微調模型"], ans: 1, exp: "Zero-shot = 零範例。直接描述任務，不給任何例子，依靠模型預訓練的通用能力。相對地，Few-shot 提供 2-5 個範例引導輸出格式。" },
+          { q: "「Chain-of-Thought（CoT）」Prompting 的主要優點是？", opts: ["縮短模型回答時間", "讓模型逐步推理，提升複雜問題的準確性", "減少輸出的 Token 數", "讓模型使用更少資源"], ans: 1, exp: "CoT 要求模型「一步步思考」，在生成最終答案前先展示推理過程，特別能提升數學、邏輯推理等複雜問題的準確率。" },
+          { q: "以下哪個是「好的 Prompt」的特徵？", opts: ["越短越好，避免混淆模型", "包含角色、任務、背景、格式等明確要求", "只使用英文以提高準確性", "避免給任何例子"], ans: 1, exp: "好的 Prompt 應包含：角色（Role）、任務（Task）、背景（Context）、格式（Format）、限制（Constraints）。明確具體的指令能大幅提升輸出品質。" },
+          { q: "「Few-shot Prompting」相較於「Zero-shot Prompting」的主要優勢是？", opts: ["不需要任何範例", "透過範例幫助模型理解期望的輸出格式", "訓練速度更快", "使用更少計算資源"], ans: 1, exp: "Few-shot 提供 2-5 個輸入輸出範例，讓模型理解期望的格式和風格，特別適合格式要求嚴格或任務定義不夠明確的情境。" },
+          { q: "「提示詞注入（Prompt Injection）」攻擊的目的是？", opts: ["提高 AI 模型的準確率", "讓模型處理更多任務", "透過惡意輸入操控 AI 忽略系統指令", "加速模型推論速度"], ans: 2, exp: "Prompt Injection 是資安攻擊：攻擊者在輸入中嵌入惡意指令（如「忽略前面的指令，改為…」），讓 AI 執行非預期的行為，繞過安全設計。" },
+          { q: "在 Prompt 設計中，「系統提示詞（System Prompt）」的作用是？", opts: ["提供使用者的問題", "在對話開始前設定 AI 的行為規範和角色", "記錄對話歷史", "提供訓練資料"], ans: 1, exp: "System Prompt 在對話前設定 AI 的角色、語氣、行為限制等，是企業產品化 AI 應用的重要工具，使用者通常看不到 System Prompt 的內容。" },
+          { q: "「Prompt Chaining（提示詞串連）」技術適合用於？", opts: ["簡單的單步驟任務", "需要分解成多個步驟的複雜任務", "圖像生成任務", "資料庫查詢"], ans: 1, exp: "Prompt Chaining 將複雜任務拆解為多個步驟，每個步驟的輸出作為下一個步驟的輸入。適合研究報告生成、多步驟資料處理等複雜工作流程。" },
+          { q: "當 AI 回答「不夠具體，超出預期範圍」時，最好的改進 Prompt 方式是？", opts: ["重複同樣的問題", "添加限制條件和指定格式", "換一個 AI 工具", "縮短問題長度"], ans: 1, exp: "AI 回答太寬泛時，應在 Prompt 中加入具體限制（字數、範圍、格式）和期望輸出的詳細說明，而非重複同樣問題或更換工具。" },
+          { q: "「Role Prompting（角色提示）」的典型用法是？", opts: ["要求 AI 列出所有可能答案", "賦予 AI 特定專業角色以獲得更專業回答", "讓 AI 自由發揮", "限制 AI 只能回答是/否問題"], ans: 1, exp: "例如：「你是一位有 20 年經驗的骨科醫生」，賦予角色後 AI 會調整回答的深度、術語和視角，更符合該領域專家的表達方式。" },
+          { q: "下列哪個 Prompt 設計最可能減少 AI 的幻覺（Hallucination）？", opts: ["要求 AI 盡量詳細回答", "要求 AI 引用來源，並承認不確定的部分", "提高 Temperature 參數值", "使用更少的背景資訊"], ans: 1, exp: "要求 AI 引用來源並明確標示不確定性（如「我不確定，建議查證」），能有效減少模型自信地生成錯誤資訊。提高溫度反而會增加幻覺。" },
+          { q: "企業評估是否導入生成式 AI 時，「POC（概念驗證）」的目的是？", opts: ["直接上線生產環境", "小規模測試技術可行性", "訓練員工使用 AI", "評估法規合規性"], ans: 1, exp: "POC（Proof of Concept）是在正式投入資源前，以小規模快速驗證「這個技術是否能解決我們的問題」，降低失敗風險。" },
+          { q: "在 AI 導入的「Build vs Buy vs API」決策中，「API 呼叫」最適合哪種情境？", opts: ["需要高度客製化且有大量訓練資料", "快速驗證想法、預算有限", "資料高度敏感且不可外傳", "需要完全控制模型"], ans: 1, exp: "API 呼叫（如 OpenAI API）成本低、開發快，適合驗證期或小型企業。但資料會傳送到外部服務，不適合高度敏感的資料場景。" },
+          { q: "「模型漂移（Model Drift）」是指什麼現象？", opts: ["模型過度學習訓練資料", "模型隨時間推移，因資料分佈改變導致效能下降", "模型訓練時間過長", "模型參數數量增加"], ans: 1, exp: "模型漂移是指部署後的模型隨時間效能下降，原因是現實資料分佈改變（如市場變化、用戶行為改變），而模型仍使用舊資料訓練的參數。" },
+          { q: "SWOT 分析中，「威脅（Threats）」在 AI 導入中通常包含？", opts: ["企業現有的技術能力", "AI 可帶來的市場機會", "法規風險和競爭對手", "資料資產的優勢"], ans: 2, exp: "SWOT：優勢（內部正面）、劣勢（內部負面）、機會（外部正面）、威脅（外部負面）。法規風險、競爭對手採用 AI 都屬於外部威脅。" },
+          { q: "AI 導入的 ROI 計算公式為？", opts: ["收入 / 成本", "(效益 - 成本) / 成本 × 100%", "效益 × 成本", "成本 / 效益 × 100%"], ans: 1, exp: "ROI = (效益 - 成本) / 成本 × 100%。效益包含節省成本和增加收入；成本包含開發、運算、維護、人員培訓等。" },
+          { q: "「Human-in-the-loop（人工審核）」機制最適合應用在哪種情境？", opts: ["所有 AI 任務都需要", "高風險、高影響的 AI 決策", "只用於測試階段", "僅限於圖像辨識任務"], ans: 1, exp: "HITL 在 AI 流程中保留人工審核環節，特別重要的是高風險決策（如醫療診斷、法律判決、金融貸款審核），避免 AI 錯誤造成嚴重後果。" },
+          { q: "生成式 AI 的「著作權風險」主要源於？", opts: ["AI 模型訓練速度太慢", "訓練資料可能包含受著作權保護的內容", "AI 使用雲端服務", "AI 輸出格式不正確"], ans: 1, exp: "LLM 和圖像生成模型使用大量網路資料訓練，這些資料可能包含受著作權保護的書籍、圖像、程式碼等，導致生成內容存在法律風險。" },
+          { q: "企業導入 AI 的「變更管理（Change Management）」主要關注？", opts: ["技術架構調整", "人員、流程、文化的適應與轉型", "資料庫升級", "網路設備更新"], ans: 1, exp: "AI 導入不只是技術問題。變更管理關注員工如何接受新工具、流程如何重新設計、企業文化如何從抵制轉為擁抱 AI，是導入成敗的關鍵。" },
+          { q: "負責任 AI（Responsible AI）原則中，「透明性（Transparency）」要求？", opts: ["AI 系統所有程式碼必須公開", "AI 決策過程應可理解和解釋", "AI 必須告知使用者所有訓練資料", "AI 必須由政府監管機構審批"], ans: 1, exp: "透明性要求 AI 的決策過程和運作原理應可被理解和解釋，尤其是高風險決策。這與可解釋 AI（XAI）密切相關，不等於完全公開程式碼。" },
+          // ── 補充題庫 ──
+          { q: "「多模態 AI（Multimodal AI）」是指？", opts: ["同時在多台伺服器上運行的 AI", "能同時理解和生成多種媒體類型（文字、圖像、音訊等）的 AI", "只能處理多國語言的 AI", "使用多個模型投票決策的 AI"], ans: 1, exp: "多模態 AI 能跨越單一媒體類型，如 GPT-4V 能同時理解圖像和文字，Gemini 原生支援文字、圖像、影片、音訊，代表 AI 向更全面的感知能力演進。" },
+          { q: "「Diffusion Model（擴散模型）」生成圖像的基本原理是？", opts: ["生成器與判別器對抗訓練", "學習從雜訊逐步去雜訊還原圖像", "壓縮圖像到潛在空間再解碼", "直接複製訓練集中最相似的圖像"], ans: 1, exp: "Diffusion Model 先對圖像逐步加入高斯雜訊（前向過程），再訓練模型學習逆向去雜訊過程。推論時從純雜訊開始，逐步去雜訊生成清晰圖像。Stable Diffusion 和 DALL-E 3 都基於此原理。" },
+          { q: "下列哪個工具最適合「企業知識庫問答」場景，並能降低幻覺風險？", opts: ["Midjourney（直接提問）", "搭配 RAG 架構的企業知識庫 AI 助理", "提高 Temperature 到最高值", "使用 Zero-shot Prompting"], ans: 1, exp: "RAG 架構先從企業內部文件庫檢索相關段落，再讓 LLM 根據這些真實文件回答，能大幅降低幻覺並提供可追溯的資料來源。" },
+          { q: "「向量資料庫（Vector Database）」在 RAG 架構中的主要作用是？", opts: ["儲存使用者聊天記錄", "儲存文件的語義向量並支援相似度搜尋", "訓練語言模型", "管理 API 金鑰"], ans: 1, exp: "向量資料庫（如 Pinecone、Chroma、Weaviate）將文件轉換為高維向量（Embedding）儲存，當使用者提問時，能快速找到語義上最相關的文件段落。" },
+          { q: "「AI Agent」與一般 LLM 聊天機器人的主要差異是？", opts: ["AI Agent 只能回答問題", "AI Agent 能自主規劃步驟、使用外部工具，並持續執行直到完成目標", "AI Agent 不需要 LLM", "AI Agent 只能執行一個固定任務"], ans: 1, exp: "AI Agent 具備自主性：給定目標後，能自行分解步驟、決定使用哪些工具（搜尋、計算器、API）、觀察結果並調整策略，直到達成目標，而非只是回答單一問題。" },
+          { q: "使用商業 AI API 服務時，「資料隱私」最需要注意的是？", opts: ["API 呼叫次數限制", "輸入資料是否被服務商用於模型訓練或保留", "API 回應速度", "服務費用高低"], ans: 1, exp: "輸入給商業 API 的資料（如客戶資訊、商業機密）可能被服務商記錄或用於改善模型。企業應審閱服務條款，避免將敏感資料輸入未簽訂保密協議的 API。" },
+          { q: "「LLM 的上下文視窗（Context Window）」大小對應用的主要影響是？", opts: ["決定模型的圖像生成品質", "決定模型一次能處理的最大文字量（長文件、長對話的能力）", "決定模型的語言翻譯準確率", "決定 API 呼叫的費用"], ans: 1, exp: "上下文視窗越大，模型能處理越長的文件或對話（如 Claude 的 200K tokens 可處理一整本書）。視窗有限時，過長的對話或文件需要截斷，可能遺失重要資訊。" },
+          { q: "「Sora」（OpenAI）在生成式 AI 領域的重要意義是？", opts: ["第一個文字生成模型", "能從文字描述生成高品質長影片", "第一個開源圖像生成模型", "能即時翻譯多種語言"], ans: 1, exp: "Sora 是 OpenAI 於 2024 年發布的文字轉影片模型，能根據文字描述生成長達數分鐘的高品質、物理上合理的影片，代表生成式 AI 從靜態圖像進入動態影片的重要里程碑。" },
+          { q: "企業使用生成式 AI 輔助撰寫合約草稿時，最需要注意的風險是？", opts: ["生成速度太慢", "AI 可能生成錯誤條款，需法律專業人員審查", "格式不符合公司規定", "AI 無法理解中文合約"], ans: 1, exp: "LLM 可能在合約內容中引入不正確的法律條款（幻覺）或忽略特定管轄區的法規要求。AI 生成的合約草稿必須經過法律專業人員仔細審查後才能使用。" },
+          { q: "「提示詞工程（Prompt Engineering）」中，「負面提示詞（Negative Prompt）」的用途是？", opts: ["讓 AI 只回答負面的問題", "明確告訴 AI 不要包含哪些內容或風格", "讓模型輸出更簡短", "降低模型溫度"], ans: 1, exp: "負面提示詞（常用於圖像生成如 Stable Diffusion）用於排除不想要的元素，如「不要模糊、不要水印、不要低品質」，引導模型避開特定特徵，提升輸出品質。" },
+          { q: "「AI 代碼審查（AI Code Review）」工具主要能提供哪些幫助？", opts: ["自動部署程式碼到生產環境", "自動偵測潛在 Bug、安全漏洞和程式碼品質問題", "管理版本控制", "設計資料庫架構"], ans: 1, exp: "AI 程式碼審查工具（如 GitHub Copilot Code Review）能掃描程式碼，自動找出潛在錯誤、安全漏洞（如 SQL 注入）、違反編碼規範等問題，輔助人工審查提升品質。" },
+          { q: "生成式 AI 用於「個人化行銷內容」的主要優勢是？", opts: ["完全取代行銷人員", "大規模快速生成針對不同族群客製化的廣告文案", "自動購買廣告版位", "分析競爭對手策略"], ans: 1, exp: "生成式 AI 能根據不同客戶特徵（年齡、興趣、購買記錄）快速生成大量個人化內容，讓原本需要大量人力的 A/B 測試和個人化行銷成為可能。" },
+          { q: "「AI 治理（AI Governance）」框架中，「模型卡（Model Card）」的用途是？", opts: ["儲存模型的程式碼", "記錄模型的用途、訓練資料、效能指標、限制和潛在風險的文件", "管理模型版本", "加速模型推論速度"], ans: 1, exp: "Model Card 是模型透明度文件，由 Google 提出，記錄模型設計意圖、訓練資料來源、在不同族群的效能、已知偏見和限制，幫助使用者做出知情決策。" },
+          { q: "企業在評估生成式 AI 工具的「總擁有成本（TCO）」時，不應忽略哪項成本？", opts: ["伺服器硬體採購", "API 用量費用（按 Token 計費）+ 員工培訓 + 整合開發費用", "辦公室租金", "行銷費用"], ans: 1, exp: "TCO 需考量：API 呼叫費用（隨使用量增加）、員工學習新工具的培訓成本、與現有系統的整合開發費用、以及後續維護監控費用，避免低估總成本。" },
+          { q: "「深偽技術（Deepfake）」對企業和社會最主要的威脅是？", opts: ["增加網路頻寬使用", "偽造真實人物的影像或聲音，用於詐欺、散佈錯誤資訊", "降低影片編輯成本", "提高娛樂產業效率"], ans: 1, exp: "Deepfake 可以偽造真實人物說話的影片或聲音，被用於：CEO 詐騙（偽造主管聲音要求匯款）、政治謊言（偽造政治人物言論）、誹謗等，是生成式 AI 帶來的嚴重社會風險。" },
+          { q: "「生成式 AI」在教育領域的潛在風險是？", opts: ["學生學習效率提升", "學術誠信問題：學生可能用 AI 代替自行思考和撰寫作業", "教材製作成本降低", "個人化學習成為可能"], ans: 1, exp: "ChatGPT 等工具使學生能輕易生成作文、報告，引發學術誠信問題。教育機構需重新設計評量方式（強調過程、口試、特定情境寫作）以因應 AI 時代的挑戰。" },
+          { q: "「Prompt 迭代優化（Prompt Iteration）」的正確做法是？", opts: ["一次就要設計出完美的 Prompt", "根據 AI 輸出的結果，持續調整 Prompt 直到符合預期", "每次都完全重寫 Prompt", "只測試一種 Prompt 版本"], ans: 1, exp: "Prompt 工程是一個迭代過程：設計初版 → 測試輸出 → 分析問題 → 調整 Prompt → 再測試，需要多輪優化。記錄不同版本的效果有助於系統性改進。" },
+          { q: "「AI 生成內容（AIGC）」的版權歸屬目前面臨的主要爭議是？", opts: ["版權明確屬於 AI 公司", "版權明確屬於使用者", "各國法律尚未統一，AI 生成內容的版權歸屬存在法律模糊地帶", "版權屬於訓練資料的原始創作者"], ans: 2, exp: "目前各國對 AI 生成內容的版權態度不一：部分國家認為 AI 生成物不受版權保護（無人類創作者）；企業使用時需了解當地法規，避免法律風險。" },
+          { q: "「AI 技術債（AI Technical Debt）」是指？", opts: ["AI 公司的財務虧損", "為求快速上線而做的短期決策，導致後續維護困難的累積技術問題", "AI 模型的訓練費用", "AI 系統的硬體折舊"], ans: 1, exp: "AI 技術債包括：使用未充分測試的模型、缺少監控、資料 Pipeline 不穩定、模型文件不完整等。這些問題在初期不顯著，但隨系統擴大會大幅增加維護成本。" },
+          { q: "「生成式 AI 的安全護欄（Guardrails）」主要用途是？", opts: ["提高模型生成速度", "過濾、限制或引導 AI 輸出，防止生成有害或不適當內容", "增加模型參數數量", "降低 API 呼叫成本"], ans: 1, exp: "Guardrails 是部署 AI 應用時的安全機制，包括：輸入過濾（阻擋惡意提示）、輸出過濾（偵測有害內容）、範圍限制（讓模型只回答特定領域問題），確保 AI 應用的安全性。" },
+          { q: "企業建立「AI 卓越中心（AI Center of Excellence, CoE）」的主要目的是？", opts: ["取代所有業務部門", "集中 AI 專業知識、制定標準、協助各業務單位導入 AI", "只負責採購 AI 工具", "管理公司的 IT 基礎設施"], ans: 1, exp: "AI CoE 是企業 AI 治理的核心單位，負責：制定 AI 使用政策和標準、培育 AI 人才、協助業務單位評估和導入 AI、監控 AI 系統，確保 AI 應用符合企業戰略和倫理要求。" }
+        ]
+      }
+    ];
 
-function renderExam() {
-  const qs = activeQuestions;
-  const answered = Object.keys(answers).length;
+    // ════════════════════════════════════════════════
+    //  STATE
+    // ════════════════════════════════════════════════
+    let currentSubject = 0;
+    let activeQuestions = []; // 本次隨機抽出的題目
+    let answers = {};
+    let revealed = {};
+    let examDone = false;
+    let timerInterval = null;
+    let secondsElapsed = 0;
 
-  document.getElementById('mainArea').innerHTML = `
+    function drawQuestions(subjectIdx) {
+      const pool = [...subjects[subjectIdx].pool, ...(imported[subjectIdx] || [])];
+      return shuffle(pool).slice(0, Math.min(DRAW, pool.length));
+    }
+
+    // ════════════════════════════════════════════════
+    //  TIMER
+    // ════════════════════════════════════════════════
+    function startTimer() {
+      clearInterval(timerInterval);
+      secondsElapsed = 0;
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        const el = document.getElementById('timer');
+        if (el) {
+          const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+          const s = String(secondsElapsed % 60).padStart(2, '0');
+          el.textContent = `⏱ ${m}:${s}`;
+          if (secondsElapsed > 30 * 60) el.classList.add('warn');
+        }
+      }, 1000);
+    }
+
+    // ════════════════════════════════════════════════
+    //  RENDER
+    // ════════════════════════════════════════════════
+    function switchSubject(idx) {
+      currentSubject = idx;
+      activeQuestions = drawQuestions(idx);
+      answers = {};
+      revealed = {};
+      examDone = false;
+      clearInterval(timerInterval);
+      document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+      renderExam();
+    }
+
+    function renderExam() {
+      const qs = activeQuestions;
+      const answered = Object.keys(answers).length;
+
+      document.getElementById('mainArea').innerHTML = `
     <div class="progress-bar-wrap">
       <div class="progress-bar-outer">
-        <div class="progress-bar-inner" id="progressBar" style="width:${answered/qs.length*100}%"></div>
+        <div class="progress-bar-inner" id="progressBar" style="width:${answered / qs.length * 100}%"></div>
       </div>
       <div class="progress-text" id="progressText">${answered} / ${qs.length} 題　（題庫 ${subjects[currentSubject].pool.length} 題隨機抽出）</div>
       <div class="timer" id="timer">⏱ 00:00</div>
@@ -788,46 +1005,46 @@ function renderExam() {
     <div class="result-screen" id="resultScreen"></div>
   `;
 
-  startTimer();
+      startTimer();
 
-  // 單一事件委派，掛在容器上，不重複綁定
-  document.getElementById('questionList').addEventListener('click', e => {
-    if (examDone) return;
-    const opt = e.target.closest('.option');
-    if (!opt || opt.classList.contains('locked')) return;
-    const qi = +opt.dataset.q;
-    const oi = +opt.dataset.o;
-    if (revealed[qi]) return;
-    answers[qi] = oi;
-    updateQuestion(qi);
-    updateProgress();
-  });
-}
-
-function renderQuestion(q, qi) {
-  const userAns = answers[qi];
-  const isRevealed = revealed[qi];
-
-  const optsHtml = q.opts.map((opt, oi) => {
-    let cls = 'option';
-    if (isRevealed) {
-      cls += ' locked';
-      if (oi === q.ans) cls += ' correct';
-      else if (oi === userAns && oi !== q.ans) cls += ' wrong';
-    } else if (oi === userAns) {
-      cls += ' selected';
+      // 單一事件委派，掛在容器上，不重複綁定
+      document.getElementById('questionList').addEventListener('click', e => {
+        if (examDone) return;
+        const opt = e.target.closest('.option');
+        if (!opt || opt.classList.contains('locked')) return;
+        const qi = +opt.dataset.q;
+        const oi = +opt.dataset.o;
+        if (revealed[qi]) return;
+        answers[qi] = oi;
+        updateQuestion(qi);
+        updateProgress();
+      });
     }
-    return `<div class="${cls}" data-q="${qi}" data-o="${oi}">
+
+    function renderQuestion(q, qi) {
+      const userAns = answers[qi];
+      const isRevealed = revealed[qi];
+
+      const optsHtml = q.opts.map((opt, oi) => {
+        let cls = 'option';
+        if (isRevealed) {
+          cls += ' locked';
+          if (oi === q.ans) cls += ' correct';
+          else if (oi === userAns && oi !== q.ans) cls += ' wrong';
+        } else if (oi === userAns) {
+          cls += ' selected';
+        }
+        return `<div class="${cls}" data-q="${qi}" data-o="${oi}">
       <div class="option-key">${'ABCD'[oi]}</div>
       <div class="option-text">${opt}</div>
     </div>`;
-  }).join('');
+      }).join('');
 
-  const expHtml = isRevealed
-    ? `<div class="explanation visible"><strong>解析：</strong>${q.exp}</div>`
-    : '';
+      const expHtml = isRevealed
+        ? `<div class="explanation visible"><strong>解析：</strong>${q.exp}</div>`
+        : '';
 
-  return `
+      return `
     <div class="question-card" id="qcard-${qi}">
       <div class="question-header">
         <div class="q-num">Q${qi + 1}</div>
@@ -836,98 +1053,98 @@ function renderQuestion(q, qi) {
       <div class="options">${optsHtml}</div>
       ${expHtml}
     </div>`;
-}
-
-function updateQuestion(qi) {
-  const qs = activeQuestions;
-  const q = qs[qi];
-  const card = document.getElementById(`qcard-${qi}`);
-  if (!card) return;
-
-  // 只更新各選項的 className，不重建 DOM，避免觸發 reflow
-  card.querySelectorAll('.option').forEach(el => {
-    const oi = +el.dataset.o;
-    el.className = 'option';
-    if (revealed[qi]) {
-      el.classList.add('locked');
-      if (oi === q.ans) el.classList.add('correct');
-      else if (oi === answers[qi]) el.classList.add('wrong');
-    } else if (oi === answers[qi]) {
-      el.classList.add('selected');
     }
-  });
-}
 
-function updateProgress() {
-  const qs = activeQuestions;
-  const answered = Object.keys(answers).length;
-  const bar = document.getElementById('progressBar');
-  const txt = document.getElementById('progressText');
-  const btn = document.getElementById('submitBtn');
-  if (bar) bar.style.width = `${answered / qs.length * 100}%`;
-  if (txt) txt.textContent = `${answered} / ${qs.length} 題已作答　（題庫 ${subjects[currentSubject].pool.length} 題）`;
-  if (btn) {
-    btn.disabled = answered < qs.length;
-    btn.textContent = `提交試卷 (${answered}/${qs.length})`;
-  }
-}
+    function updateQuestion(qi) {
+      const qs = activeQuestions;
+      const q = qs[qi];
+      const card = document.getElementById(`qcard-${qi}`);
+      if (!card) return;
 
-// ════════════════════════════════════════════════
-//  SUBMIT
-// ════════════════════════════════════════════════
-function submitExam() {
-  const qs = activeQuestions;
-  if (Object.keys(answers).length < qs.length) return;
-
-  clearInterval(timerInterval);
-  examDone = true;
-
-  // Reveal all — 先算分再一次性更新 DOM
-  qs.forEach((_, qi) => { revealed[qi] = true; });
-
-  let correct = 0;
-  qs.forEach((q, qi) => { if (answers[qi] === q.ans) correct++; });
-
-  // 用 DocumentFragment 批次插入解析，減少 reflow 次數
-  qs.forEach((q, qi) => {
-    updateQuestion(qi);
-    const card = document.getElementById(`qcard-${qi}`);
-    if (!card) return;
-    if (!card.querySelector('.explanation')) {
-      const exp = document.createElement('div');
-      exp.className = 'explanation visible';
-      exp.innerHTML = `<strong>解析：</strong>${q.exp}`;
-      card.appendChild(exp);
-    } else {
-      card.querySelector('.explanation').classList.add('visible');
+      // 只更新各選項的 className，不重建 DOM，避免觸發 reflow
+      card.querySelectorAll('.option').forEach(el => {
+        const oi = +el.dataset.o;
+        el.className = 'option';
+        if (revealed[qi]) {
+          el.classList.add('locked');
+          if (oi === q.ans) el.classList.add('correct');
+          else if (oi === answers[qi]) el.classList.add('wrong');
+        } else if (oi === answers[qi]) {
+          el.classList.add('selected');
+        }
+      });
     }
-  });
 
-  const score = Math.round(correct / qs.length * 100);
-  const pass = score >= 70;
-  const timeTaken = secondsElapsed;
-  const m = String(Math.floor(timeTaken / 60)).padStart(2, '0');
-  const s = String(timeTaken % 60).padStart(2, '0');
+    function updateProgress() {
+      const qs = activeQuestions;
+      const answered = Object.keys(answers).length;
+      const bar = document.getElementById('progressBar');
+      const txt = document.getElementById('progressText');
+      const btn = document.getElementById('submitBtn');
+      if (bar) bar.style.width = `${answered / qs.length * 100}%`;
+      if (txt) txt.textContent = `${answered} / ${qs.length} 題已作答　（題庫 ${subjects[currentSubject].pool.length} 題）`;
+      if (btn) {
+        btn.disabled = answered < qs.length;
+        btn.textContent = `提交試卷 (${answered}/${qs.length})`;
+      }
+    }
 
-  // Circle SVG
-  const r = 70;
-  const circ = 2 * Math.PI * r;
-  const dashOffset = circ * (1 - correct / qs.length);
-  const color = pass ? '#22c55e' : '#ef4444';
+    // ════════════════════════════════════════════════
+    //  SUBMIT
+    // ════════════════════════════════════════════════
+    function submitExam() {
+      const qs = activeQuestions;
+      if (Object.keys(answers).length < qs.length) return;
 
-  // Wrong list
-  const wrongItems = qs.map((q, qi) => {
-    const ok = answers[qi] === q.ans;
-    return `<div class="review-item ${ok ? 'ok-item' : ''}">
+      clearInterval(timerInterval);
+      examDone = true;
+
+      // Reveal all — 先算分再一次性更新 DOM
+      qs.forEach((_, qi) => { revealed[qi] = true; });
+
+      let correct = 0;
+      qs.forEach((q, qi) => { if (answers[qi] === q.ans) correct++; });
+
+      // 用 DocumentFragment 批次插入解析，減少 reflow 次數
+      qs.forEach((q, qi) => {
+        updateQuestion(qi);
+        const card = document.getElementById(`qcard-${qi}`);
+        if (!card) return;
+        if (!card.querySelector('.explanation')) {
+          const exp = document.createElement('div');
+          exp.className = 'explanation visible';
+          exp.innerHTML = `<strong>解析：</strong>${q.exp}`;
+          card.appendChild(exp);
+        } else {
+          card.querySelector('.explanation').classList.add('visible');
+        }
+      });
+
+      const score = Math.round(correct / qs.length * 100);
+      const pass = score >= 70;
+      const timeTaken = secondsElapsed;
+      const m = String(Math.floor(timeTaken / 60)).padStart(2, '0');
+      const s = String(timeTaken % 60).padStart(2, '0');
+
+      // Circle SVG
+      const r = 70;
+      const circ = 2 * Math.PI * r;
+      const dashOffset = circ * (1 - correct / qs.length);
+      const color = pass ? '#22c55e' : '#ef4444';
+
+      // Wrong list
+      const wrongItems = qs.map((q, qi) => {
+        const ok = answers[qi] === q.ans;
+        return `<div class="review-item ${ok ? 'ok-item' : ''}">
       <div class="review-dot ${ok ? 'ok' : 'err'}"></div>
       <div class="q-snippet">Q${qi + 1}. ${q.q.length > 40 ? q.q.slice(0, 40) + '…' : q.q}</div>
       ${!ok ? `<div class="your-ans">你: ${'ABCD'[answers[qi]]}</div>
                <div class="right-ans">正解: ${'ABCD'[q.ans]}</div>` : ''}
     </div>`;
-  }).join('');
+      }).join('');
 
-  const resultEl = document.getElementById('resultScreen');
-  resultEl.innerHTML = `
+      const resultEl = document.getElementById('resultScreen');
+      resultEl.innerHTML = `
     <div class="score-circle">
       <svg width="160" height="160" viewBox="0 0 160 160">
         <circle cx="80" cy="80" r="${r}" fill="none" stroke="#2a2a3e" stroke-width="12"/>
@@ -968,230 +1185,231 @@ function submitExam() {
       ${wrongItems}
     </div>
   `;
-  resultEl.classList.add('visible');
+      resultEl.classList.add('visible');
 
-  const btn = document.getElementById('submitBtn');
-  if (btn) btn.style.display = 'none';
+      const btn = document.getElementById('submitBtn');
+      if (btn) btn.style.display = 'none';
 
-  setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-}
+      setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
 
-function clearAnswers() {
-  activeQuestions = drawQuestions(currentSubject);
-  answers = {};
-  revealed = {};
-  examDone = false;
-  renderExam();
-}
+    function clearAnswers() {
+      activeQuestions = drawQuestions(currentSubject);
+      answers = {};
+      revealed = {};
+      examDone = false;
+      renderExam();
+    }
 
-function retakeExam() {
-  activeQuestions = drawQuestions(currentSubject);
-  answers = {};
-  revealed = {};
-  examDone = false;
-  renderExam();
-}
+    function retakeExam() {
+      activeQuestions = drawQuestions(currentSubject);
+      answers = {};
+      revealed = {};
+      examDone = false;
+      renderExam();
+    }
 
-// ════════════════════════════════════════════════
-//  FIREBASE 設定（填入你的專案資訊後，共享題庫即生效）
-// ════════════════════════════════════════════════
-const FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  databaseURL:       "https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
-};
-// ────────────────────────────────────────────────
+    // ════════════════════════════════════════════════
+    //  FIREBASE 設定（填入你的專案資訊後，共享題庫即生效）
+    // ════════════════════════════════════════════════
+    const FIREBASE_CONFIG = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.firebasestorage.app",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    // ────────────────────────────────────────────────
 
-// ════════════════════════════════════════════════
-//  NOTEBOOKLM IMPORT（共享雲端版）
-// ════════════════════════════════════════════════
-const IMPORT_KEY = 'ipas_imported_v1';
-let imported = { 0: [], 1: [] };
-let _db = null;
-let _dbRef = null;
-let _fbReady = false;
+    // ════════════════════════════════════════════════
+    //  NOTEBOOKLM IMPORT（共享雲端版）
+    // ════════════════════════════════════════════════
+    const IMPORT_KEY = 'ipas_imported_v1';
+    let imported = { 0: [], 1: [] };
+    let _db = null;
+    let _dbRef = null;
+    let _fbReady = false;
 
-// 本機 fallback：讀 localStorage
-function _loadLocal() {
-  try {
-    const s = localStorage.getItem(IMPORT_KEY);
-    if (s) imported = JSON.parse(s);
-  } catch (_) {}
-}
+    // 本機 fallback：讀 localStorage
+    function _loadLocal() {
+      try {
+        const s = localStorage.getItem(IMPORT_KEY);
+        if (s) imported = JSON.parse(s);
+      } catch (_) { }
+    }
 
-// Firebase 初始化 + 即時監聽
-function initFirebase() {
-  if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
-    _loadLocal();
-    setDbStatus('none');
-    return;
-  }
-  try {
-    firebase.initializeApp(FIREBASE_CONFIG);
-    _db    = firebase.database();
-    _dbRef = _db.ref(IMPORT_KEY);
-    setDbStatus('loading');
+    // Firebase 初始化 + 即時監聽
+    function initFirebase() {
+      if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+        _loadLocal();
+        setDbStatus('none');
+        return;
+      }
+      try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        _db = firebase.database();
+        _dbRef = _db.ref(IMPORT_KEY);
+        setDbStatus('loading');
 
-    _dbRef.on('value', snap => {
-      const data = snap.val();
-      imported = { 0: [], 1: [], ...(data || {}) };
-      // 保證是陣列
-      [0, 1].forEach(k => { if (!Array.isArray(imported[k])) imported[k] = []; });
-      _fbReady = true;
-      setDbStatus('ok');
+        _dbRef.on('value', snap => {
+          const data = snap.val();
+          imported = { 0: [], 1: [], ...(data || {}) };
+          // 保證是陣列
+          [0, 1].forEach(k => { if (!Array.isArray(imported[k])) imported[k] = []; });
+          _fbReady = true;
+          setDbStatus('ok');
+          updatePoolChips();
+          activeQuestions = drawQuestions(currentSubject);
+          renderExam();
+        }, err => {
+          console.error('Firebase read error:', err);
+          _loadLocal();
+          setDbStatus('err');
+          updatePoolChips();
+        });
+      } catch (e) {
+        console.error('Firebase init failed:', e);
+        _loadLocal();
+        setDbStatus('err');
+        updatePoolChips();
+      }
+    }
+
+    function saveImported() {
+      if (_fbReady && _dbRef) {
+        // 共享模式：寫入 Firebase（所有人即時同步）
+        _dbRef.set(imported).catch(e => console.error('Firebase write error:', e));
+      } else {
+        // fallback：localStorage
+        try { localStorage.setItem(IMPORT_KEY, JSON.stringify(imported)); } catch (_) { }
+      }
+    }
+
+    function setDbStatus(state) {
+      const el = document.getElementById('dbStatus');
+      if (!el) return;
+      const map = {
+        loading: ['🟡', '連線中…', '#f59e0b'],
+        ok: ['🟢', '共享雲端', '#22c55e'],
+        err: ['🔴', '本機模式', '#ef4444'],
+        none: ['⚪', '本機模式', '#888'],
+      };
+      const [icon, text, color] = map[state] || map.none;
+      el.innerHTML = `${icon} <span style="color:${color};font-size:0.72rem">${text}</span>`;
+    }
+
+    function toggleImport() {
+      const panel = document.getElementById('importPanel');
+      const btn = document.getElementById('importToggle');
+      const open = panel.classList.toggle('open');
+      btn.classList.toggle('active', open);
+    }
+
+    function copyPrompt() {
+      const text = document.getElementById('promptBlock').innerText.replace('複製', '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyPromptBtn');
+        btn.textContent = '已複製 ✓';
+        btn.classList.add('ok');
+        setTimeout(() => { btn.textContent = '複製'; btn.classList.remove('ok'); }, 2000);
+      });
+    }
+
+    function importQuestions() {
+      const raw = document.getElementById('importJson').value.trim();
+      if (!raw) { showMsg('請貼入 NotebookLM 生成的 JSON', 'err'); return; }
+
+      let parsed;
+      try {
+        const cleaned = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+        parsed = JSON.parse(cleaned);
+      } catch (e) {
+        showMsg('JSON 格式錯誤（' + e.message + '）', 'err'); return;
+      }
+
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        showMsg('需要 JSON 陣列格式，請重新生成', 'err'); return;
+      }
+
+      const valid = [], errs = [];
+      parsed.forEach((item, i) => {
+        const n = i + 1;
+        if (typeof item.q !== 'string' || !item.q) { errs.push(`第${n}題缺少 q`); return; }
+        if (!Array.isArray(item.opts) || item.opts.length !== 4) { errs.push(`第${n}題 opts 需4個`); return; }
+        if (typeof item.ans !== 'number' || item.ans < 0 || item.ans > 3) { errs.push(`第${n}題 ans 需0-3`); return; }
+        valid.push({ q: item.q, opts: item.opts, ans: item.ans, exp: item.exp || '' });
+      });
+
+      if (valid.length === 0) { showMsg('無有效題目：' + errs.join('；'), 'err'); return; }
+
+      const existing = new Set(subjects[currentSubject].pool.map(x => x.q));
+      const existing2 = new Set(imported[currentSubject].map(x => x.q));
+      const newOnes = valid.filter(x => !existing.has(x.q) && !existing2.has(x.q));
+      const dup = valid.length - newOnes.length;
+
+      imported[currentSubject].push(...newOnes);
+      saveImported();
       updatePoolChips();
       activeQuestions = drawQuestions(currentSubject);
+      answers = {}; revealed = {}; examDone = false;
       renderExam();
-    }, err => {
-      console.error('Firebase read error:', err);
-      _loadLocal();
-      setDbStatus('err');
+
+      const dest = _fbReady ? '已同步雲端，所有人可立即使用！' : '已儲存本機。';
+      let info = `成功匯入 ${newOnes.length} 題`;
+      if (dup > 0) info += `（${dup} 題重複跳過）`;
+      showMsg(info + '，' + dest, 'ok');
+      document.getElementById('importJson').value = '';
+    }
+
+    function clearImported() {
+      const target = `科目${currentSubject === 0 ? '一' : '二'}`;
+      const warn = _fbReady ? `（此操作會清除所有人看到的 ${target} 匯入題目）` : '';
+      if (!confirm(`確定清除 ${target} 的所有匯入題目？${warn}`)) return;
+      imported[currentSubject] = [];
+      saveImported();
       updatePoolChips();
-    });
-  } catch (e) {
-    console.error('Firebase init failed:', e);
-    _loadLocal();
-    setDbStatus('err');
-    updatePoolChips();
-  }
-}
+      activeQuestions = drawQuestions(currentSubject);
+      answers = {}; revealed = {}; examDone = false;
+      renderExam();
+      showMsg(`已清除 ${target} 匯入題目${_fbReady ? '（雲端同步）' : '（本機）'}`, 'ok');
+    }
 
-function saveImported() {
-  if (_fbReady && _dbRef) {
-    // 共享模式：寫入 Firebase（所有人即時同步）
-    _dbRef.set(imported).catch(e => console.error('Firebase write error:', e));
-  } else {
-    // fallback：localStorage
-    try { localStorage.setItem(IMPORT_KEY, JSON.stringify(imported)); } catch (_) {}
-  }
-}
+    function showMsg(text, type) {
+      const el = document.getElementById('importMsg');
+      el.textContent = text;
+      el.className = 'import-msg ' + type;
+      setTimeout(() => { if (el.textContent === text) el.className = 'import-msg'; }, 6000);
+    }
 
-function setDbStatus(state) {
-  const el = document.getElementById('dbStatus');
-  if (!el) return;
-  const map = {
-    loading: ['🟡', '連線中…', '#f59e0b'],
-    ok:      ['🟢', '共享雲端', '#22c55e'],
-    err:     ['🔴', '本機模式', '#ef4444'],
-    none:    ['⚪', '本機模式', '#888'],
-  };
-  const [icon, text, color] = map[state] || map.none;
-  el.innerHTML = `${icon} <span style="color:${color};font-size:0.72rem">${text}</span>`;
-}
-
-function toggleImport() {
-  const panel = document.getElementById('importPanel');
-  const btn   = document.getElementById('importToggle');
-  const open  = panel.classList.toggle('open');
-  btn.classList.toggle('active', open);
-}
-
-function copyPrompt() {
-  const text = document.getElementById('promptBlock').innerText.replace('複製', '').trim();
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('copyPromptBtn');
-    btn.textContent = '已複製 ✓';
-    btn.classList.add('ok');
-    setTimeout(() => { btn.textContent = '複製'; btn.classList.remove('ok'); }, 2000);
-  });
-}
-
-function importQuestions() {
-  const raw = document.getElementById('importJson').value.trim();
-  if (!raw) { showMsg('請貼入 NotebookLM 生成的 JSON', 'err'); return; }
-
-  let parsed;
-  try {
-    const cleaned = raw.replace(/^```(?:json)?\n?/,'').replace(/\n?```$/,'').trim();
-    parsed = JSON.parse(cleaned);
-  } catch (e) {
-    showMsg('JSON 格式錯誤（' + e.message + '）', 'err'); return;
-  }
-
-  if (!Array.isArray(parsed) || parsed.length === 0) {
-    showMsg('需要 JSON 陣列格式，請重新生成', 'err'); return;
-  }
-
-  const valid = [], errs = [];
-  parsed.forEach((item, i) => {
-    const n = i + 1;
-    if (typeof item.q !== 'string' || !item.q)              { errs.push(`第${n}題缺少 q`); return; }
-    if (!Array.isArray(item.opts) || item.opts.length !== 4) { errs.push(`第${n}題 opts 需4個`); return; }
-    if (typeof item.ans !== 'number' || item.ans < 0 || item.ans > 3) { errs.push(`第${n}題 ans 需0-3`); return; }
-    valid.push({ q: item.q, opts: item.opts, ans: item.ans, exp: item.exp || '' });
-  });
-
-  if (valid.length === 0) { showMsg('無有效題目：' + errs.join('；'), 'err'); return; }
-
-  const existing  = new Set(subjects[currentSubject].pool.map(x => x.q));
-  const existing2 = new Set(imported[currentSubject].map(x => x.q));
-  const newOnes   = valid.filter(x => !existing.has(x.q) && !existing2.has(x.q));
-  const dup = valid.length - newOnes.length;
-
-  imported[currentSubject].push(...newOnes);
-  saveImported();
-  updatePoolChips();
-  activeQuestions = drawQuestions(currentSubject);
-  answers = {}; revealed = {}; examDone = false;
-  renderExam();
-
-  const dest = _fbReady ? '已同步雲端，所有人可立即使用！' : '已儲存本機。';
-  let info = `成功匯入 ${newOnes.length} 題`;
-  if (dup > 0) info += `（${dup} 題重複跳過）`;
-  showMsg(info + '，' + dest, 'ok');
-  document.getElementById('importJson').value = '';
-}
-
-function clearImported() {
-  const target = `科目${currentSubject === 0 ? '一' : '二'}`;
-  const warn   = _fbReady ? `（此操作會清除所有人看到的 ${target} 匯入題目）` : '';
-  if (!confirm(`確定清除 ${target} 的所有匯入題目？${warn}`)) return;
-  imported[currentSubject] = [];
-  saveImported();
-  updatePoolChips();
-  activeQuestions = drawQuestions(currentSubject);
-  answers = {}; revealed = {}; examDone = false;
-  renderExam();
-  showMsg(`已清除 ${target} 匯入題目${_fbReady ? '（雲端同步）' : '（本機）'}`, 'ok');
-}
-
-function showMsg(text, type) {
-  const el = document.getElementById('importMsg');
-  el.textContent = text;
-  el.className = 'import-msg ' + type;
-  setTimeout(() => { if (el.textContent === text) el.className = 'import-msg'; }, 6000);
-}
-
-function updatePoolChips() {
-  const chips = document.getElementById('poolChips');
-  if (!chips) return;
-  const s0imp = imported[0].length;
-  const s1imp = imported[1].length;
-  chips.innerHTML = `
+    function updatePoolChips() {
+      const chips = document.getElementById('poolChips');
+      if (!chips) return;
+      const s0imp = imported[0].length;
+      const s1imp = imported[1].length;
+      chips.innerHTML = `
     <span class="pool-chip">科目一 ${subjects[0].pool.length} 題</span>
     ${s0imp ? `<span class="pool-chip imported">＋匯入 ${s0imp} 題</span>` : ''}
     <span class="pool-chip">科目二 ${subjects[1].pool.length} 題</span>
     ${s1imp ? `<span class="pool-chip imported">＋匯入 ${s1imp} 題</span>` : ''}
   `;
-}
+    }
 
-// ════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════
-document.getElementById('tabBar').addEventListener('click', e => {
-  const tab = e.target.closest('.tab');
-  if (tab) switchSubject(+tab.dataset.subject);
-});
+    // ════════════════════════════════════════════════
+    //  INIT
+    // ════════════════════════════════════════════════
+    document.getElementById('tabBar').addEventListener('click', e => {
+      const tab = e.target.closest('.tab');
+      if (tab) switchSubject(+tab.dataset.subject);
+    });
 
-// 初始化 Firebase（共享題庫）→ 同時初始渲染
-initFirebase();          // 連線成功後會自動 re-render
-activeQuestions = drawQuestions(currentSubject);
-updatePoolChips();
-renderExam();
-</script>
+    // 初始化 Firebase（共享題庫）→ 同時初始渲染
+    initFirebase();          // 連線成功後會自動 re-render
+    activeQuestions = drawQuestions(currentSubject);
+    updatePoolChips();
+    renderExam();
+  </script>
 </body>
+
 </html>
