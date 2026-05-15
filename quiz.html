@@ -464,6 +464,71 @@
       color: #ef4444;
     }
 
+    /* ── Firebase 設定 Modal ── */
+    .fb-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #00000088;
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fb-overlay.open { display: flex; }
+
+    .fb-modal {
+      background: #1a1a2e;
+      border: 1px solid #3a3a5a;
+      border-radius: 14px;
+      padding: 1.75rem;
+      width: min(480px, 92vw);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .fb-modal h2 { font-size: 1rem; color: #c0b0ff; }
+
+    .fb-modal p { font-size: 0.8rem; color: #777; line-height: 1.6; }
+
+    .fb-modal a { color: #7c6af7; }
+
+    .fb-config-ta {
+      width: 100%;
+      min-height: 120px;
+      background: #0d0d1a;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: #c0c0e0;
+      font-family: 'Consolas', monospace;
+      font-size: 0.78rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    .fb-config-ta:focus { border-color: #7c6af7; }
+
+    .fb-modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+    .fb-status-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #3a3a5a;
+      background: none;
+      color: #888;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .fb-status-btn:hover { border-color: #7c6af7; color: #c0b0ff; }
+
     /* ── NotebookLM Import Panel ── */
     .import-bar {
       background: #13131f;
@@ -746,6 +811,27 @@
     </button>
     <div class="pool-chips" id="poolChips"></div>
     <div class="db-status" id="dbStatus">⚪ <span style="color:#555">未連線</span></div>
+    <button class="fb-status-btn" onclick="openFbModal()">⚙ Firebase</button>
+  </div>
+
+  <!-- Firebase 設定 Modal -->
+  <div class="fb-overlay" id="fbOverlay" onclick="closeFbModalOutside(event)">
+    <div class="fb-modal">
+      <h2>⚙ Firebase 共享題庫設定</h2>
+      <p>
+        前往 <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a>
+        → 新增專案 → Realtime Database → 複製 Web 應用程式設定，貼入下方。<br>
+        設定後所有使用者匯入的題目將即時共享。
+      </p>
+      <textarea class="fb-config-ta" id="fbConfigInput"
+        placeholder='貼入 Firebase 設定（JSON 或 JS 物件皆可）：&#10;{&#10;  "apiKey": "...",&#10;  "databaseURL": "https://YOUR-PROJECT-default-rtdb.firebasedatabase.app",&#10;  ...&#10;}'></textarea>
+      <div id="fbConfigMsg" style="font-size:0.8rem;min-height:1.2rem"></div>
+      <div class="fb-modal-actions">
+        <button class="btn-clear-import" onclick="clearFbConfig()">清除設定</button>
+        <button class="btn-clear-import" onclick="closeFbModal()">取消</button>
+        <button class="btn-import" onclick="saveFbConfig()">儲存並連線</button>
+      </div>
+    </div>
   </div>
 
   <!-- Import Panel -->
@@ -1222,63 +1308,124 @@
     }
 
     // ════════════════════════════════════════════════
-    //  FIREBASE 設定（填入你的專案資訊後，共享題庫即生效）
-    // ════════════════════════════════════════════════
-    const FIREBASE_CONFIG = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.firebasestorage.app",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    // ────────────────────────────────────────────────
-
-    // ════════════════════════════════════════════════
-    //  NOTEBOOKLM IMPORT（共享雲端版）
+    //  FIREBASE 設定 UI + 初始化
     // ════════════════════════════════════════════════
     const IMPORT_KEY = 'ipas_imported_v1';
+    const FB_CFG_KEY = 'ipas_fb_config_v1';
     let imported = { 0: [], 1: [] };
-    let _db = null;
-    let _dbRef = null;
+    let _db      = null;
+    let _dbRef   = null;
     let _fbReady = false;
 
-    // 本機 fallback：讀 localStorage
+    // ── Modal 開關 ──────────────────────────────────
+    function openFbModal() {
+      const saved = localStorage.getItem(FB_CFG_KEY);
+      if (saved) {
+        try { document.getElementById('fbConfigInput').value = JSON.stringify(JSON.parse(saved), null, 2); }
+        catch (_) {}
+      }
+      document.getElementById('fbOverlay').classList.add('open');
+    }
+
+    function closeFbModal() {
+      document.getElementById('fbOverlay').classList.remove('open');
+      document.getElementById('fbConfigMsg').textContent = '';
+    }
+
+    function closeFbModalOutside(e) {
+      if (e.target === document.getElementById('fbOverlay')) closeFbModal();
+    }
+
+    // ── 解析貼入的 Firebase 設定（支援 JS 物件或 JSON）──
+    function _parseFbInput(raw) {
+      // 先試 JSON
+      try { return JSON.parse(raw); } catch (_) {}
+      // 轉換 JS 物件字面量 → JSON
+      const s = raw
+        .replace(/^[\s\S]*?(\{)/, '$1')   // 取第一個 { 之後
+        .replace(/\}[\s\S]*$/, '}')        // 取最後一個 }
+        .replace(/\/\/.*$/gm, '')          // 移除單行註解
+        .replace(/,\s*([\}\]])/g, '$1')    // 移除尾隨逗號
+        .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":')  // key: → "key":
+        .replace(/:\s*'([^']*)'/g, ': "$1"');        // 單引號值 → 雙引號
+      return JSON.parse(s);
+    }
+
+    function saveFbConfig() {
+      const raw = document.getElementById('fbConfigInput').value.trim();
+      const msgEl = document.getElementById('fbConfigMsg');
+
+      if (!raw) { msgEl.style.color = '#ef4444'; msgEl.textContent = '請貼入設定內容'; return; }
+
+      let cfg;
+      try { cfg = _parseFbInput(raw); }
+      catch (e) { msgEl.style.color = '#ef4444'; msgEl.textContent = '格式錯誤：' + e.message; return; }
+
+      if (!cfg.apiKey || !cfg.databaseURL) {
+        msgEl.style.color = '#ef4444';
+        msgEl.textContent = '缺少 apiKey 或 databaseURL（請確認已啟用 Realtime Database）';
+        return;
+      }
+
+      localStorage.setItem(FB_CFG_KEY, JSON.stringify(cfg));
+      msgEl.style.color = '#22c55e';
+      msgEl.textContent = '儲存成功，重新載入中…';
+      setTimeout(() => { closeFbModal(); location.reload(); }, 700);
+    }
+
+    function clearFbConfig() {
+      localStorage.removeItem(FB_CFG_KEY);
+      document.getElementById('fbConfigInput').value = '';
+      const msgEl = document.getElementById('fbConfigMsg');
+      msgEl.style.color = '#888';
+      msgEl.textContent = '已清除，切換為本機模式…';
+      setTimeout(() => { closeFbModal(); location.reload(); }, 700);
+    }
+
+    // ── 本機 fallback ────────────────────────────────
     function _loadLocal() {
       try {
         const s = localStorage.getItem(IMPORT_KEY);
         if (s) imported = JSON.parse(s);
-      } catch (_) { }
+      } catch (_) {}
     }
 
-    // Firebase 初始化 + 即時監聽
+    // ── Firebase 初始化 + 即時監聽 ──────────────────
     function initFirebase() {
-      if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+      let cfg = null;
+      try { const s = localStorage.getItem(FB_CFG_KEY); if (s) cfg = JSON.parse(s); } catch (_) {}
+
+      if (!cfg || !cfg.apiKey || !cfg.databaseURL) {
         _loadLocal();
         setDbStatus('none');
         return;
       }
+
       try {
-        firebase.initializeApp(FIREBASE_CONFIG);
-        _db = firebase.database();
+        // 防止重複 initializeApp
+        const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
+        _db    = firebase.database(app);
         _dbRef = _db.ref(IMPORT_KEY);
         setDbStatus('loading');
 
         _dbRef.on('value', snap => {
           const data = snap.val();
-          imported = { 0: [], 1: [], ...(data || {}) };
-          // Firebase 將陣列儲存為物件（{0:q,1:q}），需轉回陣列
+          const next = { 0: [], 1: [], ...(data || {}) };
+          // Firebase 將陣列存成物件，轉回陣列
           [0, 1].forEach(k => {
-            const v = imported[k];
-            if (Array.isArray(v)) return;
-            imported[k] = (v && typeof v === 'object') ? Object.values(v) : [];
+            const v = next[k];
+            next[k] = Array.isArray(v) ? v
+                    : (v && typeof v === 'object') ? Object.values(v) : [];
           });
+          imported = next;
           _fbReady = true;
           setDbStatus('ok');
           updatePoolChips();
-          activeQuestions = drawQuestions(currentSubject);
-          renderExam();
+          // 考試進行中（已作答）→ 靜默更新題庫，不重置
+          if (Object.keys(answers).length === 0 && !examDone) {
+            activeQuestions = drawQuestions(currentSubject);
+            renderExam();
+          }
         }, err => {
           console.error('Firebase read error:', err);
           _loadLocal();
@@ -1295,11 +1442,9 @@
 
     function saveImported() {
       if (_fbReady && _dbRef) {
-        // 共享模式：寫入 Firebase（所有人即時同步）
         _dbRef.set(imported).catch(e => console.error('Firebase write error:', e));
       } else {
-        // fallback：localStorage
-        try { localStorage.setItem(IMPORT_KEY, JSON.stringify(imported)); } catch (_) { }
+        try { localStorage.setItem(IMPORT_KEY, JSON.stringify(imported)); } catch (_) {}
       }
     }
 
@@ -1308,9 +1453,9 @@
       if (!el) return;
       const map = {
         loading: ['🟡', '連線中…', '#f59e0b'],
-        ok: ['🟢', '共享雲端', '#22c55e'],
-        err: ['🔴', '本機模式', '#ef4444'],
-        none: ['⚪', '本機模式', '#888'],
+        ok:      ['🟢', '共享雲端', '#22c55e'],
+        err:     ['🔴', '本機模式', '#ef4444'],
+        none:    ['⚪', '本機模式', '#888'],
       };
       const [icon, text, color] = map[state] || map.none;
       el.innerHTML = `${icon} <span style="color:${color};font-size:0.72rem">${text}</span>`;
