@@ -529,25 +529,6 @@
       justify-content: flex-end;
     }
 
-    .fb-status-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.3rem 0.75rem;
-      border-radius: 6px;
-      border: 1px solid #3a3a5a;
-      background: none;
-      color: #888;
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-
-    .fb-status-btn:hover {
-      border-color: #7c6af7;
-      color: #c0b0ff;
-    }
 
     /* ── NotebookLM Import Panel ── */
     .import-bar {
@@ -830,8 +811,7 @@
       ＋ NotebookLM 匯入題目
     </button>
     <div class="pool-chips" id="poolChips"></div>
-    <div class="db-status" id="dbStatus">⚪ <span style="color:#555">未連線</span></div>
-    <button class="fb-status-btn" onclick="openFbModal()">⚙ Firebase</button>
+    <div class="db-status" id="dbStatus" onclick="_dbStatusClick()" style="cursor:default;user-select:none">⚪ <span style="color:#555">未連線</span></div>
   </div>
 
   <!-- Firebase 設定 Modal -->
@@ -1330,6 +1310,15 @@
     let _dbRef = null;
     let _fbReady = false;
 
+    // ── 隱藏入口：連點狀態燈 5 下（2 秒內）才開啟設定 ──
+    let _dbClickCount = 0, _dbClickTimer = null;
+    function _dbStatusClick() {
+      _dbClickCount++;
+      clearTimeout(_dbClickTimer);
+      _dbClickTimer = setTimeout(() => { _dbClickCount = 0; }, 2000);
+      if (_dbClickCount >= 5) { _dbClickCount = 0; openFbModal(); }
+    }
+
     // ── Modal 開關 ──────────────────────────────────
     function openFbModal() {
       const ta = document.getElementById('fbConfigInput');
@@ -1383,9 +1372,17 @@
       }
 
       localStorage.setItem(FB_CFG_KEY, JSON.stringify(cfg));
+      // 產生 firebase-config.json 供下載，部署後所有使用者共用
+      const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: 'firebase-config.json'
+      });
+      a.click();
+      URL.revokeObjectURL(a.href);
       msgEl.style.color = '#22c55e';
-      msgEl.textContent = '儲存成功，重新載入中…';
-      setTimeout(() => { closeFbModal(); location.reload(); }, 700);
+      msgEl.textContent = '✓ 已下載 firebase-config.json，請將此檔案與 quiz.html 放在同一目錄後重新部署，所有使用者即可共用雲端。';
+      setTimeout(() => { closeFbModal(); location.reload(); }, 2500);
     }
 
     function clearFbConfig() {
@@ -1406,9 +1403,19 @@
     }
 
     // ── Firebase 初始化 + 即時監聽 ──────────────────
-    function initFirebase() {
+    async function initFirebase() {
       let cfg = null;
-      try { const s = localStorage.getItem(FB_CFG_KEY); if (s) cfg = JSON.parse(s); } catch (_) { }
+
+      // 優先：fetch firebase-config.json（部署後所有使用者共享同一設定）
+      try {
+        const res = await fetch('./firebase-config.json', { cache: 'no-cache' });
+        if (res.ok) cfg = await res.json();
+      } catch (_) { }
+
+      // fallback：localStorage（管理者本機設定）
+      if (!cfg || !cfg.apiKey) {
+        try { const s = localStorage.getItem(FB_CFG_KEY); if (s) cfg = JSON.parse(s); } catch (_) { }
+      }
 
       if (!cfg || !cfg.apiKey || !cfg.databaseURL) {
         _loadLocal();
@@ -1604,11 +1611,13 @@
       if (tab) switchSubject(+tab.dataset.subject);
     });
 
-    // 初始化 Firebase（共享題庫）→ 同時初始渲染
-    initFirebase();          // 連線成功後會自動 re-render
+    // 初始化 Firebase（共享題庫）→ 連線後 onValue 自動 re-render
+    // 先用本機資料做初次渲染，Firebase 連線後會自動更新
+    _loadLocal();
     activeQuestions = drawQuestions(currentSubject);
     updatePoolChips();
     renderExam();
+    initFirebase(); // async，背景執行
   </script>
 </body>
 
