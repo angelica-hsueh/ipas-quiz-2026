@@ -774,7 +774,19 @@
     </div>
 
     <div>
-      <h3>② 將 NotebookLM 回覆的 JSON 貼入下方</h3>
+      <h3>② 選擇目標科目並貼入 / 上傳 JSON</h3>
+      <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
+        <label style="font-size:0.82rem;color:#888">匯入至：</label>
+        <select id="importTarget" style="background:#0d0d1a;border:1px solid #2a2a4a;color:#c0c0e0;padding:0.3rem 0.6rem;border-radius:6px;font-size:0.82rem;cursor:pointer">
+          <option value="0">科目一：AI 基礎概論</option>
+          <option value="1">科目二：生成式 AI 應用</option>
+          <option value="both">兩科目都加入</option>
+        </select>
+        <label class="btn-clear-import" style="cursor:pointer;padding:0.4rem 0.9rem">
+          📂 上傳 JSON 檔
+          <input type="file" id="fileInput" accept=".json" style="display:none" onchange="importFromFile(event)">
+        </label>
+      </div>
       <div class="import-row">
         <textarea class="import-textarea" id="importJson"
           placeholder='[{"q":"題目...","opts":["A","B","C","D"],"ans":0,"exp":"解析..."}]'></textarea>
@@ -788,9 +800,16 @@
 
   </div>
 
-  <main id="mainArea">
-  
-  </main>
+  <main id="mainArea"></main>
+  const firebaseConfig = {
+  apiKey: "AIzaSyCMxR3WGoeNNKV8bLmy-uzPtjXP_MCFDoE",
+  authDomain: "ipas-quiz-2026.firebaseapp.com",
+  projectId: "ipas-quiz-2026",
+  storageBucket: "ipas-quiz-2026.firebasestorage.app",
+  messagingSenderId: "1007725178155",
+  appId: "1:1007725178155:web:63cd54799168e0628a696e",
+  measurementId: "G-WRSCB78YVG"
+  };
   <script>
     // ════════════════════════════════════════════════
     //  QUESTION DATA  (pool → 每次隨機抽 29 題)
@@ -979,7 +998,7 @@
       <div class="progress-bar-outer">
         <div class="progress-bar-inner" id="progressBar" style="width:${answered / qs.length * 100}%"></div>
       </div>
-      <div class="progress-text" id="progressText">${answered} / ${qs.length} 題　（題庫 ${subjects[currentSubject].pool.length} 題隨機抽出）</div>
+      <div class="progress-text" id="progressText">${answered} / ${qs.length} 題　（題庫 ${subjects[currentSubject].pool.length + (imported[currentSubject]||[]).length} 題中隨機抽出）</div>
       <div class="timer" id="timer">⏱ 00:00</div>
     </div>
 
@@ -1206,14 +1225,13 @@
     //  FIREBASE 設定（填入你的專案資訊後，共享題庫即生效）
     // ════════════════════════════════════════════════
     const FIREBASE_CONFIG = {
-      apiKey: "AIzaSyCMxR3WGoeNNKV8bLmy-uzPtjXP_MCFDoE",
-      authDomain: "ipas-quiz-2026.firebaseapp.com",
-      //databaseURL: "https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "ipas-quiz-2026",
-      storageBucket: "ipas-quiz-2026.firebasestorage.app",
-      messagingSenderId: "1007725178155",
-      appId: "1:1007725178155:web:63cd54799168e0628a696e",
-      measurementId: "G-WRSCB78YVG"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.firebasestorage.app",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
     // ────────────────────────────────────────────────
 
@@ -1250,8 +1268,12 @@
         _dbRef.on('value', snap => {
           const data = snap.val();
           imported = { 0: [], 1: [], ...(data || {}) };
-          // 保證是陣列
-          [0, 1].forEach(k => { if (!Array.isArray(imported[k])) imported[k] = []; });
+          // Firebase 將陣列儲存為物件（{0:q,1:q}），需轉回陣列
+          [0, 1].forEach(k => {
+            const v = imported[k];
+            if (Array.isArray(v)) return;
+            imported[k] = (v && typeof v === 'object') ? Object.values(v) : [];
+          });
           _fbReady = true;
           setDbStatus('ok');
           updatePoolChips();
@@ -1311,9 +1333,22 @@
       });
     }
 
+    function importFromFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('importJson').value = e.target.result;
+        importQuestions();
+      };
+      reader.onerror = () => showMsg('檔案讀取失敗', 'err');
+      reader.readAsText(file, 'UTF-8');
+      event.target.value = ''; // 允許重複選同一檔案
+    }
+
     function importQuestions() {
       const raw = document.getElementById('importJson').value.trim();
-      if (!raw) { showMsg('請貼入 NotebookLM 生成的 JSON', 'err'); return; }
+      if (!raw) { showMsg('請貼入 JSON 或上傳檔案', 'err'); return; }
 
       let parsed;
       try {
@@ -1338,23 +1373,34 @@
 
       if (valid.length === 0) { showMsg('無有效題目：' + errs.join('；'), 'err'); return; }
 
-      const existing = new Set(subjects[currentSubject].pool.map(x => x.q));
-      const existing2 = new Set(imported[currentSubject].map(x => x.q));
-      const newOnes = valid.filter(x => !existing.has(x.q) && !existing2.has(x.q));
-      const dup = valid.length - newOnes.length;
+      // 決定要匯入哪些科目
+      const targetVal = (document.getElementById('importTarget') || {}).value || String(currentSubject);
+      const targets = targetVal === 'both' ? [0, 1] : [+targetVal];
 
-      imported[currentSubject].push(...newOnes);
+      let totalNew = 0, totalDup = 0;
+      targets.forEach(si => {
+        const existing = new Set([
+          ...subjects[si].pool.map(x => x.q),
+          ...imported[si].map(x => x.q)
+        ]);
+        const newOnes = valid.filter(x => !existing.has(x.q));
+        totalDup += valid.length - newOnes.length;
+        totalNew += newOnes.length;
+        imported[si].push(...newOnes);
+      });
+
       saveImported();
       updatePoolChips();
       activeQuestions = drawQuestions(currentSubject);
       answers = {}; revealed = {}; examDone = false;
       renderExam();
 
-      const dest = _fbReady ? '已同步雲端，所有人可立即使用！' : '已儲存本機。';
-      let info = `成功匯入 ${newOnes.length} 題`;
-      if (dup > 0) info += `（${dup} 題重複跳過）`;
-      showMsg(info + '，' + dest, 'ok');
-      document.getElementById('importJson').value = '';
+      const dest = _fbReady ? '，已同步雲端' : '';
+      const subjectLabel = targetVal === 'both' ? '兩科目' : `科目${targets[0] === 0 ? '一' : '二'}`;
+      let info = `已將 ${totalNew} 題加入${subjectLabel}`;
+      if (totalDup > 0) info += `（${totalDup} 題重複跳過）`;
+      showMsg(info + dest, totalNew > 0 ? 'ok' : 'err');
+      if (totalNew > 0) document.getElementById('importJson').value = '';
     }
 
     function clearImported() {
@@ -1380,14 +1426,14 @@
     function updatePoolChips() {
       const chips = document.getElementById('poolChips');
       if (!chips) return;
-      const s0imp = imported[0].length;
-      const s1imp = imported[1].length;
+      const s0imp = (imported[0] || []).length;
+      const s1imp = (imported[1] || []).length;
+      const s0total = subjects[0].pool.length + s0imp;
+      const s1total = subjects[1].pool.length + s1imp;
       chips.innerHTML = `
-    <span class="pool-chip">科目一 ${subjects[0].pool.length} 題</span>
-    ${s0imp ? `<span class="pool-chip imported">＋匯入 ${s0imp} 題</span>` : ''}
-    <span class="pool-chip">科目二 ${subjects[1].pool.length} 題</span>
-    ${s1imp ? `<span class="pool-chip imported">＋匯入 ${s1imp} 題</span>` : ''}
-  `;
+        <span class="pool-chip">科目一 ${s0total} 題${s0imp ? `（含匯入${s0imp}）` : ''}</span>
+        <span class="pool-chip">科目二 ${s1total} 題${s1imp ? `（含匯入${s1imp}）` : ''}</span>
+      `;
     }
 
     // ════════════════════════════════════════════════
