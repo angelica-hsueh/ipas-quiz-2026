@@ -475,7 +475,9 @@
       justify-content: center;
     }
 
-    .fb-overlay.open { display: flex; }
+    .fb-overlay.open {
+      display: flex;
+    }
 
     .fb-modal {
       background: #1a1a2e;
@@ -488,11 +490,20 @@
       gap: 1rem;
     }
 
-    .fb-modal h2 { font-size: 1rem; color: #c0b0ff; }
+    .fb-modal h2 {
+      font-size: 1rem;
+      color: #c0b0ff;
+    }
 
-    .fb-modal p { font-size: 0.8rem; color: #777; line-height: 1.6; }
+    .fb-modal p {
+      font-size: 0.8rem;
+      color: #777;
+      line-height: 1.6;
+    }
 
-    .fb-modal a { color: #7c6af7; }
+    .fb-modal a {
+      color: #7c6af7;
+    }
 
     .fb-config-ta {
       width: 100%;
@@ -508,9 +519,15 @@
       outline: none;
     }
 
-    .fb-config-ta:focus { border-color: #7c6af7; }
+    .fb-config-ta:focus {
+      border-color: #7c6af7;
+    }
 
-    .fb-modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+    .fb-modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
 
     .fb-status-btn {
       display: flex;
@@ -527,7 +544,10 @@
       white-space: nowrap;
     }
 
-    .fb-status-btn:hover { border-color: #7c6af7; color: #c0b0ff; }
+    .fb-status-btn:hover {
+      border-color: #7c6af7;
+      color: #c0b0ff;
+    }
 
     /* ── NotebookLM Import Panel ── */
     .import-bar {
@@ -863,7 +883,8 @@
       <h3>② 選擇目標科目並貼入 / 上傳 JSON</h3>
       <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
         <label style="font-size:0.82rem;color:#888">匯入至：</label>
-        <select id="importTarget" style="background:#0d0d1a;border:1px solid #2a2a4a;color:#c0c0e0;padding:0.3rem 0.6rem;border-radius:6px;font-size:0.82rem;cursor:pointer">
+        <select id="importTarget"
+          style="background:#0d0d1a;border:1px solid #2a2a4a;color:#c0c0e0;padding:0.3rem 0.6rem;border-radius:6px;font-size:0.82rem;cursor:pointer">
           <option value="0">科目一：AI 基礎概論</option>
           <option value="1">科目二：生成式 AI 應用</option>
           <option value="both">兩科目都加入</option>
@@ -886,7 +907,8 @@
 
   </div>
 
-  <main id="mainArea"></main>
+  <main id="mainArea">
+  </main>
   <script>
     // ════════════════════════════════════════════════
     //  QUESTION DATA  (pool → 每次隨機抽 29 題)
@@ -1075,7 +1097,7 @@
       <div class="progress-bar-outer">
         <div class="progress-bar-inner" id="progressBar" style="width:${answered / qs.length * 100}%"></div>
       </div>
-      <div class="progress-text" id="progressText">${answered} / ${qs.length} 題　（題庫 ${subjects[currentSubject].pool.length + (imported[currentSubject]||[]).length} 題中隨機抽出）</div>
+      <div class="progress-text" id="progressText">${answered} / ${qs.length} 題　（題庫 ${subjects[currentSubject].pool.length + (imported[currentSubject] || []).length} 題中隨機抽出）</div>
       <div class="timer" id="timer">⏱ 00:00</div>
     </div>
 
@@ -1304,17 +1326,19 @@
     const IMPORT_KEY = 'ipas_imported_v1';
     const FB_CFG_KEY = 'ipas_fb_config_v1';
     let imported = { 0: [], 1: [] };
-    let _db      = null;
-    let _dbRef   = null;
+    let _db = null;
+    let _dbRef = null;
     let _fbReady = false;
 
     // ── Modal 開關 ──────────────────────────────────
     function openFbModal() {
+      const ta = document.getElementById('fbConfigInput');
       const saved = localStorage.getItem(FB_CFG_KEY);
-      if (saved) {
-        try { document.getElementById('fbConfigInput').value = JSON.stringify(JSON.parse(saved), null, 2); }
-        catch (_) {}
-      }
+      // 已有設定時不回填，避免 API Key 顯示在畫面上
+      ta.value = '';
+      ta.placeholder = saved
+        ? '已儲存設定（如需更換，貼入新設定後儲存；如需移除，點「清除設定」）'
+        : '貼入 Firebase 設定（JSON 或 JS 物件皆可）：\n{\n  "apiKey": "...",\n  "databaseURL": "https://...",\n  ...\n}';
       document.getElementById('fbOverlay').classList.add('open');
     }
 
@@ -1330,7 +1354,7 @@
     // ── 解析貼入的 Firebase 設定（支援 JS 物件或 JSON）──
     function _parseFbInput(raw) {
       // 先試 JSON
-      try { return JSON.parse(raw); } catch (_) {}
+      try { return JSON.parse(raw); } catch (_) { }
       // 轉換 JS 物件字面量 → JSON
       const s = raw
         .replace(/^[\s\S]*?(\{)/, '$1')   // 取第一個 { 之後
@@ -1378,13 +1402,13 @@
       try {
         const s = localStorage.getItem(IMPORT_KEY);
         if (s) imported = JSON.parse(s);
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // ── Firebase 初始化 + 即時監聽 ──────────────────
     function initFirebase() {
       let cfg = null;
-      try { const s = localStorage.getItem(FB_CFG_KEY); if (s) cfg = JSON.parse(s); } catch (_) {}
+      try { const s = localStorage.getItem(FB_CFG_KEY); if (s) cfg = JSON.parse(s); } catch (_) { }
 
       if (!cfg || !cfg.apiKey || !cfg.databaseURL) {
         _loadLocal();
@@ -1395,7 +1419,7 @@
       try {
         // 防止重複 initializeApp
         const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
-        _db    = firebase.database(app);
+        _db = firebase.database(app);
         _dbRef = _db.ref(IMPORT_KEY);
         setDbStatus('loading');
 
@@ -1406,7 +1430,7 @@
           [0, 1].forEach(k => {
             const v = next[k];
             next[k] = Array.isArray(v) ? v
-                    : (v && typeof v === 'object') ? Object.values(v) : [];
+              : (v && typeof v === 'object') ? Object.values(v) : [];
           });
           imported = next;
           _fbReady = true;
@@ -1435,7 +1459,7 @@
       if (_fbReady && _dbRef) {
         _dbRef.set(imported).catch(e => console.error('Firebase write error:', e));
       } else {
-        try { localStorage.setItem(IMPORT_KEY, JSON.stringify(imported)); } catch (_) {}
+        try { localStorage.setItem(IMPORT_KEY, JSON.stringify(imported)); } catch (_) { }
       }
     }
 
@@ -1444,9 +1468,9 @@
       if (!el) return;
       const map = {
         loading: ['🟡', '連線中…', '#f59e0b'],
-        ok:      ['🟢', '共享雲端', '#22c55e'],
-        err:     ['🔴', '本機模式', '#ef4444'],
-        none:    ['⚪', '本機模式', '#888'],
+        ok: ['🟢', '共享雲端', '#22c55e'],
+        err: ['🔴', '本機模式', '#ef4444'],
+        none: ['⚪', '本機模式', '#888'],
       };
       const [icon, text, color] = map[state] || map.none;
       el.innerHTML = `${icon} <span style="color:${color};font-size:0.72rem">${text}</span>`;
